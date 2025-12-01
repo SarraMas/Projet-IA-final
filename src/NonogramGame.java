@@ -12,7 +12,16 @@ public class NonogramGame extends JFrame {
     private Random random = new Random();
     private int currentSize = 5;
     
-    private final int[] AVAILABLE_SIZES = {3, 4, 5, 6};
+    // Variables pour la visualisation des stratégies
+    private JButton strategyButton;
+    private JComboBox<String> strategyComboBox;
+    private Timer visualizationTimer;
+    private SolverStrategy currentStrategy;
+    private Nonogram visualizationPuzzle;
+    private boolean isVisualizing = false;
+    private int visualizationSpeed = 800;
+    
+    private final int[] AVAILABLE_SIZES = {3, 4, 5};
 
     // 🎨 Palette de couleurs moderne
     private final Color BACKGROUND_COLOR = new Color(18, 18, 18); // Noir profond
@@ -102,7 +111,7 @@ public class NonogramGame extends JFrame {
                     break;
                 }
             }
-            if (!hasFilled && random.nextBoolean()) {
+            if (!hasFilled) {
                 solution[i][random.nextInt(size)] = CellState.FILLED;
             }
         }
@@ -125,11 +134,11 @@ public class NonogramGame extends JFrame {
     private int[][] calculateRowClues(CellState[][] solution) {
         int size = solution.length;
         int[][] rowClues = new int[size][];
-        
+
         for (int i = 0; i < size; i++) {
             java.util.List<Integer> clues = new java.util.ArrayList<>();
             int count = 0;
-            
+
             for (int j = 0; j < size; j++) {
                 if (solution[i][j] == CellState.FILLED) {
                     count++;
@@ -140,29 +149,30 @@ public class NonogramGame extends JFrame {
                     }
                 }
             }
-            
+
             if (count > 0) {
                 clues.add(count);
             }
-            
+
+            // Ne pas ajouter 0 : utiliser un tableau vide si aucun indice
             if (clues.isEmpty()) {
-                clues.add(0);
+                rowClues[i] = new int[0];
+            } else {
+                rowClues[i] = clues.stream().mapToInt(Integer::intValue).toArray();
             }
-            
-            rowClues[i] = clues.stream().mapToInt(Integer::intValue).toArray();
         }
-        
+
         return rowClues;
     }
 
     private int[][] calculateColClues(CellState[][] solution) {
         int size = solution.length;
         int[][] colClues = new int[size][];
-        
+
         for (int j = 0; j < size; j++) {
             java.util.List<Integer> clues = new java.util.ArrayList<>();
             int count = 0;
-            
+
             for (int i = 0; i < size; i++) {
                 if (solution[i][j] == CellState.FILLED) {
                     count++;
@@ -173,18 +183,19 @@ public class NonogramGame extends JFrame {
                     }
                 }
             }
-            
+
             if (count > 0) {
                 clues.add(count);
             }
-            
+
+            // Ne pas ajouter 0 : utiliser un tableau vide si aucun indice
             if (clues.isEmpty()) {
-                clues.add(0);
+                colClues[j] = new int[0];
+            } else {
+                colClues[j] = clues.stream().mapToInt(Integer::intValue).toArray();
             }
-            
-            colClues[j] = clues.stream().mapToInt(Integer::intValue).toArray();
         }
-        
+
         return colClues;
     }
 
@@ -407,7 +418,10 @@ public class NonogramGame extends JFrame {
         statusLabel.setFont(new Font("Arial", Font.BOLD, 14));
         statusLabel.setForeground(new Color(200, 200, 200));
 
-        // Boutons en bas
+        // Panel pour les contrôles de stratégie (NOUVEAU)
+        JPanel strategyPanel = createStrategyPanel();
+
+        // Boutons en bas (existants)
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
         buttonPanel.setBackground(PANEL_COLOR);
 
@@ -424,12 +438,195 @@ public class NonogramGame extends JFrame {
         buttonPanel.add(solveButton);
         buttonPanel.add(quitButton);
 
-        panel.add(statusLabel, BorderLayout.NORTH);
-        panel.add(Box.createVerticalStrut(10), BorderLayout.CENTER);
+        // Assemblage
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(PANEL_COLOR);
+        topPanel.add(statusLabel, BorderLayout.NORTH);
+        topPanel.add(strategyPanel, BorderLayout.SOUTH);
+
+        panel.add(topPanel, BorderLayout.NORTH);
         panel.add(buttonPanel, BorderLayout.SOUTH);
 
         return panel;
     }
+    private JPanel createStrategyPanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
+        panel.setBackground(PANEL_COLOR);
+        
+        strategyComboBox = new JComboBox<>(new String[]{
+        	    "Simple Line Solver", 
+        	    "Backtracking Solver",
+        	    "LogicStrategy",
+        	    "RandomStrategy"
+        	});
+
+        strategyComboBox.setBackground(PANEL_COLOR);
+        strategyComboBox.setForeground(Color.WHITE);
+        strategyComboBox.setFont(new Font("Arial", Font.PLAIN, 12));
+        
+        strategyButton = createModernButton("👁️ Voir la Stratégie", new Color(46, 204, 113));
+        strategyButton.addActionListener(e -> toggleStrategyVisualization());
+        
+        JButton speedButton = createModernButton("⚡ Vitesse", new Color(255, 193, 7));
+        speedButton.addActionListener(e -> changeVisualizationSpeed());
+        
+        panel.add(new JLabel("Stratégie:"));
+        panel.add(strategyComboBox);
+        panel.add(strategyButton);
+        panel.add(speedButton);
+        
+        return panel;
+    }
+        //Méthodes de visualisation 
+    private void toggleStrategyVisualization() {
+        if (isVisualizing) {
+            stopStrategyVisualization();
+        } else {
+            startStrategyVisualization();
+        }
+    }
+
+    private void startStrategyVisualization() {
+        String selectedStrategy = (String) strategyComboBox.getSelectedItem();
+        
+        if ("Simple Line Solver".equals(selectedStrategy)) {
+            currentStrategy = new SimpleLineSolver();
+        } 
+        else if ("Backtracking Solver".equals(selectedStrategy)) {
+            currentStrategy = new BacktrackingSolver();
+        }
+        else if ("LogicStrategy".equals(selectedStrategy)) {
+            currentStrategy = new LogicStrategy();   // <-- AJOUT ICI
+        }
+        else if ("RandomStrategy".equals(selectedStrategy)) { // <-- CORRIGÉ
+            currentStrategy = new RandomStrategy(2000);
+        }
+
+        currentStrategy.setStepByStepMode(true);
+        currentStrategy.resetStatistics();
+        
+        visualizationPuzzle = copyPuzzle(nonogram);
+        
+        isVisualizing = true;
+        strategyButton.setText("⏹️ Arrêter");
+        strategyButton.setBackground(CROSSED_COLOR);
+        
+        statusLabel.setText("👁️ Visualisation : " + selectedStrategy + " - Étape 0");
+        statusLabel.setForeground(new Color(255, 193, 7));
+        
+        startVisualizationTimer();
+    }
+
+
+    private void startVisualizationTimer() {
+        visualizationTimer = new Timer(visualizationSpeed, e -> {
+            if (!isVisualizing || !currentStrategy.hasNextStep()) {
+                stopStrategyVisualization();
+                if (visualizationPuzzle.isSolved()) {
+                    statusLabel.setText("✅ Stratégie terminée - Puzzle résolu !");
+                    statusLabel.setForeground(SUCCESS_COLOR);
+                }
+                return;
+            }
+            
+            currentStrategy.executeNextStep(visualizationPuzzle);
+            updateGridFromVisualizationPuzzle();
+            
+            int step = currentStrategy.getCurrentStep();
+            statusLabel.setText("👁️ " + currentStrategy.getName() + " - Étape " + step);
+        });
+        
+        visualizationTimer.start();
+    }
+
+    private void stopStrategyVisualization() {
+        if (visualizationTimer != null) {
+            visualizationTimer.stop();
+        }
+        isVisualizing = false;
+        strategyButton.setText("👁️ Voir la Stratégie");
+        strategyButton.setBackground(new Color(46, 204, 113));
+        updateGridDisplay();
+    }
+
+    private void updateGridFromVisualizationPuzzle() {
+        for (int row = 0; row < nonogram.getHeight(); row++) {
+            for (int col = 0; col < nonogram.getWidth(); col++) {
+                CellState state = visualizationPuzzle.getCell(row, col);
+                updateButtonDisplay(gridButtons[row][col], state);
+            }
+        }
+    }
+
+    private void updateButtonDisplay(JButton button, CellState state) {
+        switch (state) {
+            case EMPTY:
+                button.setBackground(new Color(40, 40, 40));
+                button.setText("");
+                break;
+            case FILLED:
+                button.setBackground(FILLED_COLOR);
+                button.setText("");
+                break;
+            case CROSSED:
+                button.setBackground(new Color(40, 40, 40));
+                button.setText("×");
+                button.setForeground(CROSSED_COLOR);
+                break;
+        }
+    }
+
+        private int countFilledCells(Nonogram puzzle) {
+            int count = 0;
+            for (int row = 0; row < puzzle.getHeight(); row++) {
+                for (int col = 0; col < puzzle.getWidth(); col++) {
+                    if (puzzle.getCell(row, col) == CellState.FILLED) {
+                        count++;
+                    }
+                }
+            }
+            return count;
+        }
+
+        private Nonogram copyPuzzle(Nonogram original) {
+            return new Nonogram(
+                original.getWidth(),
+                original.getHeight(), 
+                original.getClues(),
+                original.getSolution()
+            );
+        }
+
+        private void changeVisualizationSpeed() {
+            String[] speeds = {"Lent", "Normal", "Rapide", "Très Rapide"};
+            int[] delays = {1500, 800, 300, 100};
+            
+            String currentSpeed = "Normal";
+            if (visualizationSpeed == 1500) currentSpeed = "Lent";
+            else if (visualizationSpeed == 800) currentSpeed = "Normal"; 
+            else if (visualizationSpeed == 300) currentSpeed = "Rapide";
+            else if (visualizationSpeed == 100) currentSpeed = "Très Rapide";
+            
+            String newSpeed = (String) JOptionPane.showInputDialog(this,
+                "Choisissez la vitesse de visualisation:",
+                "Vitesse de Visualisation",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                speeds,
+                currentSpeed);
+            
+            if (newSpeed != null) {
+                for (int i = 0; i < speeds.length; i++) {
+                    if (speeds[i].equals(newSpeed)) {
+                        visualizationSpeed = delays[i];
+                        if (visualizationTimer != null) {
+                            visualizationTimer.setDelay(visualizationSpeed);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
 
     /**
      * 🎨 Crée un bouton moderne avec effets

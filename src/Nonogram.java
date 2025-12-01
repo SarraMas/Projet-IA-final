@@ -114,6 +114,21 @@ public class Nonogram {
             System.out.println();
         }
     }
+    public int getCompletionPercentage() {
+        int total = width * height;
+        int filledOrCrossed = 0;
+
+        for (int r = 0; r < height; r++) {
+            for (int c = 0; c < width; c++) {
+                if (grid[r][c] == CellState.FILLED || grid[r][c] == CellState.CROSSED) {
+                    filledOrCrossed++;
+                }
+            }
+        }
+
+        return (int) ((filledOrCrossed * 100.0) / total);
+    }
+
 
     public void printSolution() {
         if (solution == null) {

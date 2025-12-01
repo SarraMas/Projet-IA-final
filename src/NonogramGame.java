@@ -752,7 +752,7 @@ public class NonogramGame extends JFrame {
         });
         timer.start();
 
-        // Message de victoire stylé
+        // Message de victoire 
         UIManager.put("OptionPane.background", PANEL_COLOR);
         UIManager.put("Panel.background", PANEL_COLOR);
         UIManager.put("OptionPane.messageForeground", Color.WHITE);

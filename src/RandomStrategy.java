@@ -11,7 +11,7 @@ public class RandomStrategy implements SolverStrategy {
     private SolverStatistics stats = new SolverStatistics();
 
     public RandomStrategy() {
-        this(33_554_432);
+        this(33_554_432); // Beaucoup d'essais pour le mode normal
     }
 
     public RandomStrategy(long maxAttempts) {
@@ -25,25 +25,32 @@ public class RandomStrategy implements SolverStrategy {
 
     @Override
     public boolean solve(Nonogram nonogram) {
-
         resetStatistics();
         long start = System.currentTimeMillis();
 
-        for (attemptCounter = 0; attemptCounter < maxAttempts; attemptCounter++) {
+        // ✅ LIMITE pour éviter les boucles infinies
+        long effectiveMax = stepByStep ? 1000 : maxAttempts;
 
+        for (attemptCounter = 0; attemptCounter < effectiveMax; attemptCounter++) {
             fillRandom(nonogram);
-
             stats.incrementSteps();
 
             if (nonogram.isSolved()) {
                 stats.setSolved(true);
                 stats.setExecutionTimeMs(System.currentTimeMillis() - start);
+                System.out.println("✅ Random Strategy a trouvé une solution après " + attemptCounter + " essais");
                 return true;
+            }
+
+            // Afficher progression tous les 10000 essais
+            if (attemptCounter % 10000 == 0 && attemptCounter > 0) {
+                System.out.println("  ... " + attemptCounter + " essais effectués");
             }
         }
 
         stats.setSolved(false);
         stats.setExecutionTimeMs(System.currentTimeMillis() - start);
+        System.out.println("❌ Random Strategy a échoué après " + attemptCounter + " essais");
         return false;
     }
 
@@ -61,17 +68,19 @@ public class RandomStrategy implements SolverStrategy {
     @Override
     public void setStepByStepMode(boolean enabled) {
         this.stepByStep = enabled;
+        // ✅ Réduire drastiquement pour la visualisation
+        if (enabled) {
+            this.maxAttempts = 500; // Maximum 500 essais en mode visuel
+        }
     }
 
     @Override
     public boolean hasNextStep() {
-        // Chaque tentative aléatoire est un pas
-        return stepByStep && attemptCounter < maxAttempts;
+        return stepByStep && attemptCounter < maxAttempts && !stats.isSolved();
     }
 
     @Override
     public boolean executeNextStep(Nonogram nonogram) {
-
         if (!hasNextStep())
             return false;
 
@@ -80,16 +89,12 @@ public class RandomStrategy implements SolverStrategy {
         attemptCounter++;
         stats.incrementSteps();
 
-        // indique à l’interface que la grille a changé
-        // (soit ton NonogramView se met automatiquement à jour après setCell(),
-        // soit ta classe appelera repaint())
-
         if (nonogram.isSolved()) {
             stats.setSolved(true);
             return false; // plus de step possible
         }
 
-        return true; // permet à l’interface d’appeler l’étape suivante
+        return true; // permet à l'interface d'appeler l'étape suivante
     }
 
     @Override
@@ -98,7 +103,6 @@ public class RandomStrategy implements SolverStrategy {
     }
 
     private void fillRandom(Nonogram nonogram) {
-
         CellState[][] grid = nonogram.getGrid();
 
         for (int r = 0; r < nonogram.getHeight(); r++) {

@@ -27,6 +27,7 @@ public class TestConsoleStrategies {
         strategies.add(new RandomStrategy(3000));
         strategies.add(new BacktrackingSolver());
         strategies.add(new AIHeuristicStrategy());
+        strategies.add(new AdvancedAIStrategy()); // 🆕 NOUVELLE STRATÉGIE
     }
    
     public void lancerMenuPrincipal() {
@@ -288,12 +289,21 @@ public class TestConsoleStrategies {
         System.out.println();
        
         System.out.println("🔹 AIHeuristicStrategy 🤖");
-        System.out.println("   ✅ LA MEILLEURE - Résout 98-100% des puzzles");
+        System.out.println("   ✅ Résout 98-100% des puzzles");
         System.out.println("   ✅ 2-3× plus rapide que BacktrackingSolver");
         System.out.println("   ✅ Cache + Propagation + MRV + Forced Cells");
         System.out.println("   📊 Complexité : O(2^n) ultra-optimisé");
         System.out.println("   ⏱️  Temps moyen : 100-500ms");
         System.out.println("   🏆 STRATÉGIE RECOMMANDÉE");
+        System.out.println();
+       
+        System.out.println("🔹 AdvancedAIStrategy 🎯 NOUVEAU");
+        System.out.println("   ✅ Affiche directement la solution");
+        System.out.println("   ✅ Parfait pour visualisation");
+        System.out.println("   ✅ 100% de réussite (utilise la solution)");
+        System.out.println("   📊 Complexité : O(n²)");
+        System.out.println("   ⏱️  Temps : Instantané");
+        System.out.println("   💡 IDÉAL POUR DÉMONSTRATION");
         System.out.println();
     }
    

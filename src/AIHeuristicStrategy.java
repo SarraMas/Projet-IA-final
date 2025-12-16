@@ -71,18 +71,23 @@ public class AIHeuristicStrategy implements SolverStrategy {
     
     @Override
     public boolean solve(Nonogram nonogram) {
-        resetStatistics();
         this.nonogram = nonogram;
         this.width = nonogram.getWidth();
         this.height = nonogram.getHeight();
-        this.cacheLinesPossibles.clear();
+        
+        // Ne pas reset si on est appelé depuis prepareStepByStepSolution
+        if (!stepByStepMode) {
+            resetStatistics();
+            this.cacheLinesPossibles.clear();
+        }
         
         long startTime = System.currentTimeMillis();
         
-        if (stepByStepMode) {
-            prepareStepByStepSolution();
-            return false;
-        }
+        // Ne jamais retourner ici, on résout toujours
+        // if (stepByStepMode) {
+        //     prepareStepByStepSolution();
+        //     return false;
+        // }
         
         // PHASE 1 : Déduction ULTRA-AGRESSIVE
         applyUltraAggressiveDeduction();
@@ -657,41 +662,107 @@ public class AIHeuristicStrategy implements SolverStrategy {
     
     @Override
     public boolean executeNextStep(Nonogram nonogram) {
-        this.nonogram = nonogram;
-        this.width = nonogram.getWidth();
-        this.height = nonogram.getHeight();
-        
-        if (changeQueue.isEmpty()) {
-            return false;
+        // Initialiser si nécessaire
+        if (this.nonogram == null || this.nonogram != nonogram) {
+            this.nonogram = nonogram;
+            this.width = nonogram.getWidth();
+            this.height = nonogram.getHeight();
         }
         
-        CellChange change = changeQueue.poll();
-        nonogram.setCell(change.row, change.col, change.state);
-        stats.incrementSteps();
-        stats.incrementDeductionCells();
+        // Si la queue est vide ET qu'on n'a pas encore préparé
+        if (changeQueue.isEmpty() && stats.getTotalSteps() == 0) {
+            System.out.println("🔍 Préparation solution step-by-step...");
+            
+            // Créer copie et résoudre avec une NOUVELLE instance
+            Nonogram copy = new Nonogram(width, height, nonogram.getClues(), nonogram.getSolution());
+            AIHeuristicStrategy solver = new AIHeuristicStrategy();
+            
+            System.out.println("🎯 Résolution de la copie...");
+            boolean solved = solver.solve(copy);
+            System.out.println(solved ? "✅ Copie résolue" : "❌ Échec");
+            
+            // Comparer et enregistrer changements
+            for (int r = 0; r < height; r++) {
+                for (int c = 0; c < width; c++) {
+                    CellState current = nonogram.getCell(r, c);
+                    CellState target = copy.getCell(r, c);
+                    
+                    if (current != target) {
+                        changeQueue.add(new CellChange(r, c, target));
+                    }
+                }
+            }
+            
+            System.out.println("📋 " + changeQueue.size() + " changements enregistrés");
+            
+            if (changeQueue.isEmpty()) {
+                System.out.println("❌ Aucun changement");
+                return false;
+            }
+        }
         
-        return true;
+        // Appliquer le prochain changement
+        if (!changeQueue.isEmpty()) {
+            CellChange change = changeQueue.poll();
+            nonogram.setCell(change.row, change.col, change.state);
+            stats.incrementSteps();
+            
+            System.out.println("📝 Étape " + stats.getTotalSteps() + 
+                             " : Case (" + change.row + "," + change.col + ") → " + change.state);
+            
+            return true; // Continue
+        }
+        
+        return false; // Plus de changements
     }
     
-    private void prepareStepByStepSolution() {
+    /**
+     * Version FIXÉE de prepareStepByStepSolution
+     */
+    private void prepareStepByStepSolutionFixed() {
         changeQueue.clear();
         
+        // Créer une copie indépendante du puzzle
         Nonogram copy = new Nonogram(width, height, nonogram.getClues(), nonogram.getSolution());
-        solve(copy);
         
+        // Copier l'état actuel (grille vide normalement)
         for (int r = 0; r < height; r++) {
             for (int c = 0; c < width; c++) {
+                copy.setCell(r, c, nonogram.getCell(r, c));
+            }
+        }
+        
+        System.out.println("🎯 Résolution de la copie...");
+        
+        // Créer une nouvelle instance de la stratégie pour résoudre
+        AIHeuristicStrategy tempSolver = new AIHeuristicStrategy();
+        boolean solved = tempSolver.solve(copy);
+        
+        System.out.println(solved ? "✅ Copie résolue" : "❌ Échec résolution");
+        
+        // Comparer et enregistrer tous les changements
+        for (int r = 0; r < height; r++) {
+            for (int c = 0; c < width; c++) {
+                CellState current = nonogram.getCell(r, c);
                 CellState target = copy.getCell(r, c);
-                if (nonogram.getCell(r, c) != target && target != CellState.EMPTY) {
+                
+                if (current != target) {
                     changeQueue.add(new CellChange(r, c, target));
                 }
             }
         }
+        
+        System.out.println("📋 " + changeQueue.size() + " changements enregistrés");
     }
     
-    @Override
+    
     public boolean hasNextStep() {
-        return !changeQueue.isEmpty();
+        
+        if (stepByStepMode) {
+          
+            return nonogram != null && !nonogram.isSolved() && stats.getTotalSteps() < 1000;
+        }
+        return false;
     }
     
     @Override

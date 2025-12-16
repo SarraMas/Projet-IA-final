@@ -26,6 +26,7 @@ public class BenchmarkComplet {
         strategies.add(new RandomStrategy(3000));
         strategies.add(new BacktrackingSolver());
         strategies.add(new AIHeuristicStrategy());
+        strategies.add(new AdvancedAIStrategy()); // 🆕 NOUVELLE STRATÉGIE
         
         for (SolverStrategy s : strategies) {
             resultats.put(s.getName(), new ArrayList<>());

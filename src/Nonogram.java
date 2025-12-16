@@ -80,14 +80,24 @@ public class Nonogram {
         
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
-                // Pour les cases remplies dans la solution, elles doivent être remplies dans la grille
-                if (solution[i][j] == CellState.FILLED && grid[i][j] != CellState.FILLED) {
-                    return false;
+                CellState gridState = grid[i][j];
+                CellState solutionState = solution[i][j];
+                
+                // CAS 1: Dans la solution c'est FILLED → doit être FILLED dans la grille
+                if (solutionState == CellState.FILLED) {
+                    if (gridState != CellState.FILLED) {
+                        return false;
+                    }
                 }
-                // Pour les cases vides dans la solution, elles ne doivent PAS être remplies dans la grille
-                if (solution[i][j] != CellState.FILLED && grid[i][j] == CellState.FILLED) {
-                    return false;
+                // CAS 2: Dans la solution c'est EMPTY → peut être EMPTY ou CROSSED dans la grille
+                // (CROSSED signifie "certainement vide", c'est correct)
+                else if (solutionState == CellState.EMPTY) {
+                    if (gridState == CellState.FILLED) {
+                        return false; // MAUVAIS: on a rempli une case qui devrait être vide
+                    }
+                    // EMPTY ou CROSSED sont acceptables pour une case vide
                 }
+                // Note: solution ne devrait jamais contenir CROSSED
             }
         }
         return true;

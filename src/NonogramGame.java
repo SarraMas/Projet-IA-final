@@ -11,7 +11,7 @@ public class NonogramGame extends JFrame {
     private JLabel titleLabel;
     private Random random = new Random();
     private int currentSize = 5;
-    
+   
     // Variables pour la visualisation des stratégies
     private JButton strategyButton;
     private JComboBox<String> strategyComboBox;
@@ -20,7 +20,7 @@ public class NonogramGame extends JFrame {
     private Nonogram visualizationPuzzle;
     private boolean isVisualizing = false;
     private int visualizationSpeed = 800;
-    
+   
     private final int[] AVAILABLE_SIZES = {3, 4, 5};
 
     // 🎨 Palette de couleurs moderne
@@ -44,34 +44,34 @@ public class NonogramGame extends JFrame {
     private void generateNewPuzzle() {
         // 🎲 Choisir une taille aléatoire
         currentSize = AVAILABLE_SIZES[random.nextInt(AVAILABLE_SIZES.length)];
-        
+       
         if (statusLabel != null) {
             statusLabel.setText("⏳ Génération d'un puzzle " + currentSize + "×" + currentSize + "...");
         }
-        
+       
         System.out.println("🎲 Nouvelle taille aléatoire : " + currentSize + "×" + currentSize);
-        
+       
         int maxAttempts = 100;
         int attempt = 0;
-        
+       
         while (attempt < maxAttempts) {
             attempt++;
-            
+           
             CellState[][] solution = generateRandomSolution(currentSize);
             int[][] rowClues = calculateRowClues(solution);
             int[][] colClues = calculateColClues(solution);
-            
+           
             LineClues clues = new LineClues(rowClues, colClues);
-            
+           
             if (PuzzleValidator.hasUniqueSolution(clues, currentSize, currentSize)) {
                 this.nonogram = new Nonogram(currentSize, currentSize, clues, solution);
                 System.out.println("✅ Puzzle " + currentSize + "×" + currentSize + " valide généré en " + attempt + " tentative(s)");
                 return;
             }
-            
+           
             System.out.println("⚠️ Tentative " + attempt + " : Puzzle rejeté (solutions multiples)");
         }
-        
+       
         System.out.println("⚠️ Échec après " + maxAttempts + " tentatives, utilisation d'un puzzle prédéfini");
         this.nonogram = NonogramFactory.createSimple5x5();
         this.currentSize = 5;
@@ -82,26 +82,26 @@ public class NonogramGame extends JFrame {
      */
     private CellState[][] generateRandomSolution(int size) {
         CellState[][] solution = new CellState[size][size];
-        
+       
         // Densité variable (30-50% de cases remplies pour des puzzles intéressants)
         double density = 0.3 + random.nextDouble() * 0.2;
-        
+       
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
-                solution[i][j] = random.nextDouble() < density ? 
+                solution[i][j] = random.nextDouble() < density ?
                     CellState.FILLED : CellState.EMPTY;
             }
         }
-        
+       
         // S'assurer qu'il y a au moins une case remplie par ligne/colonne
         ensureValidPuzzle(solution);
-        
+       
         return solution;
     }
 
     private void ensureValidPuzzle(CellState[][] solution) {
         int size = solution.length;
-        
+       
         // Vérifier chaque ligne
         for (int i = 0; i < size; i++) {
             boolean hasFilled = false;
@@ -115,7 +115,7 @@ public class NonogramGame extends JFrame {
                 solution[i][random.nextInt(size)] = CellState.FILLED;
             }
         }
-        
+       
         // Vérifier chaque colonne
         for (int j = 0; j < size; j++) {
             boolean hasFilled = false;
@@ -266,7 +266,7 @@ public class NonogramGame extends JFrame {
     private JPanel createColumnCluesPanel() {
         int[][] colClues = nonogram.getClues().getColClues();
         int maxClueHeight = getMaxClueLength(colClues);
-        
+       
         JPanel panel = new JPanel(new GridLayout(maxClueHeight, nonogram.getWidth(), 2, 2));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 50, 10, 10));
         panel.setBackground(BACKGROUND_COLOR);
@@ -279,12 +279,12 @@ public class NonogramGame extends JFrame {
                 label.setOpaque(true);
                 label.setBackground(PANEL_COLOR);
                 label.setBorder(BorderFactory.createLineBorder(GRID_COLOR, 1));
-                
+               
                 int clueIndex = colClues[col].length - maxClueHeight + clueRow;
                 if (clueIndex >= 0) {
                     label.setText(String.valueOf(colClues[col][clueIndex]));
                 }
-                
+               
                 panel.add(label);
             }
         }
@@ -294,7 +294,7 @@ public class NonogramGame extends JFrame {
 
     private JPanel createRowCluesPanel() {
         int[][] rowClues = nonogram.getClues().getRowClues();
-        
+       
         JPanel panel = new JPanel(new GridLayout(nonogram.getHeight(), 1, 2, 2));
         panel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
         panel.setBackground(BACKGROUND_COLOR);
@@ -341,10 +341,10 @@ public class NonogramGame extends JFrame {
 
     private JButton createGridButton(int row, int col) {
         JButton button = new JButton();
-        
-        int buttonSize = currentSize <= 5 ? 45 : 
+       
+        int buttonSize = currentSize <= 5 ? 45 :
                         currentSize <= 7 ? 40 : 35;
-        
+       
         button.setPreferredSize(new Dimension(buttonSize, buttonSize));
         button.setBackground(new Color(40, 40, 40));
         button.setFont(new Font("Arial", Font.BOLD, 16));
@@ -452,32 +452,32 @@ public class NonogramGame extends JFrame {
     private JPanel createStrategyPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
         panel.setBackground(PANEL_COLOR);
-        
+       
         strategyComboBox = new JComboBox<>(new String[]{
-        	    "Simple Line Solver", 
+        	    "Simple Line Solver",
+        	    "Logic Strategy",
+        	    "Random Strategy",
         	    "Backtracking Solver",
-        	    "LogicStrategy",
-        	    "RandomStrategy"
+        	    "🤖 AI Heuristic Strategy (Ultra-Optimisée 150/150)" // NOUVEAU NOM EXACT
         	});
-
         strategyComboBox.setBackground(PANEL_COLOR);
         strategyComboBox.setForeground(Color.WHITE);
         strategyComboBox.setFont(new Font("Arial", Font.PLAIN, 12));
-        
+       
         strategyButton = createModernButton("👁️ Voir la Stratégie", new Color(46, 204, 113));
         strategyButton.addActionListener(e -> toggleStrategyVisualization());
-        
+       
         JButton speedButton = createModernButton("⚡ Vitesse", new Color(255, 193, 7));
         speedButton.addActionListener(e -> changeVisualizationSpeed());
-        
+       
         panel.add(new JLabel("Stratégie:"));
         panel.add(strategyComboBox);
         panel.add(strategyButton);
         panel.add(speedButton);
-        
+       
         return panel;
     }
-        //Méthodes de visualisation 
+        //Méthodes de visualisation
     private void toggleStrategyVisualization() {
         if (isVisualizing) {
             stopStrategyVisualization();
@@ -488,34 +488,47 @@ public class NonogramGame extends JFrame {
 
     private void startStrategyVisualization() {
         String selectedStrategy = (String) strategyComboBox.getSelectedItem();
-        
+
         if ("Simple Line Solver".equals(selectedStrategy)) {
             currentStrategy = new SimpleLineSolver();
-        } 
+        }
+        else if ("Logic Strategy".equals(selectedStrategy)) {
+            currentStrategy = new LogicStrategy();
+        }
+        else if ("Random Strategy".equals(selectedStrategy)) {
+            currentStrategy = new RandomStrategy(2000);
+        }
         else if ("Backtracking Solver".equals(selectedStrategy)) {
             currentStrategy = new BacktrackingSolver();
         }
-        else if ("LogicStrategy".equals(selectedStrategy)) {
-            currentStrategy = new LogicStrategy();   // <-- AJOUT ICI
+        else if ("🤖 AI Heuristic Strategy".equals(selectedStrategy)) {
+            currentStrategy = new AIHeuristicStrategy(); // NOUVELLE STRATÉGIE
         }
-        else if ("RandomStrategy".equals(selectedStrategy)) { // <-- CORRIGÉ
-            currentStrategy = new RandomStrategy(2000);
+
+        // 🔒 SÉCURITÉ : si jamais il y a une faute de nom
+        if (currentStrategy == null) {
+            JOptionPane.showMessageDialog(this,
+                "Stratégie inconnue : " + selectedStrategy,
+                "Erreur",
+                JOptionPane.ERROR_MESSAGE);
+            return;
         }
 
         currentStrategy.setStepByStepMode(true);
         currentStrategy.resetStatistics();
-        
+
         visualizationPuzzle = copyPuzzle(nonogram);
-        
+
         isVisualizing = true;
         strategyButton.setText("⏹️ Arrêter");
         strategyButton.setBackground(CROSSED_COLOR);
-        
+
         statusLabel.setText("👁️ Visualisation : " + selectedStrategy + " - Étape 0");
         statusLabel.setForeground(new Color(255, 193, 7));
-        
+
         startVisualizationTimer();
     }
+    
 
 
     private void startVisualizationTimer() {
@@ -528,14 +541,14 @@ public class NonogramGame extends JFrame {
                 }
                 return;
             }
-            
+           
             currentStrategy.executeNextStep(visualizationPuzzle);
             updateGridFromVisualizationPuzzle();
-            
+           
             int step = currentStrategy.getCurrentStep();
             statusLabel.setText("👁️ " + currentStrategy.getName() + " - Étape " + step);
         });
-        
+       
         visualizationTimer.start();
     }
 
@@ -591,7 +604,7 @@ public class NonogramGame extends JFrame {
         private Nonogram copyPuzzle(Nonogram original) {
             return new Nonogram(
                 original.getWidth(),
-                original.getHeight(), 
+                original.getHeight(),
                 original.getClues(),
                 original.getSolution()
             );
@@ -600,13 +613,13 @@ public class NonogramGame extends JFrame {
         private void changeVisualizationSpeed() {
             String[] speeds = {"Lent", "Normal", "Rapide", "Très Rapide"};
             int[] delays = {1500, 800, 300, 100};
-            
+           
             String currentSpeed = "Normal";
             if (visualizationSpeed == 1500) currentSpeed = "Lent";
-            else if (visualizationSpeed == 800) currentSpeed = "Normal"; 
+            else if (visualizationSpeed == 800) currentSpeed = "Normal";
             else if (visualizationSpeed == 300) currentSpeed = "Rapide";
             else if (visualizationSpeed == 100) currentSpeed = "Très Rapide";
-            
+           
             String newSpeed = (String) JOptionPane.showInputDialog(this,
                 "Choisissez la vitesse de visualisation:",
                 "Vitesse de Visualisation",
@@ -614,7 +627,7 @@ public class NonogramGame extends JFrame {
                 null,
                 speeds,
                 currentSpeed);
-            
+           
             if (newSpeed != null) {
                 for (int i = 0; i < speeds.length; i++) {
                     if (speeds[i].equals(newSpeed)) {
@@ -640,7 +653,7 @@ public class NonogramGame extends JFrame {
         button.setBorderPainted(false);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         button.setPreferredSize(new Dimension(160, 40));
-        
+       
         // Effet hover
         button.addMouseListener(new MouseAdapter() {
             @Override
@@ -701,15 +714,15 @@ public class NonogramGame extends JFrame {
             for (int col = 0; col < nonogram.getWidth(); col++) {
                 final int finalRow = row;
                 final int finalCol = col;
-                
-                if (nonogram.getCell(row, col) == CellState.EMPTY && 
+               
+                if (nonogram.getCell(row, col) == CellState.EMPTY &&
                     nonogram.getSolution()[row][col] == CellState.FILLED) {
                     gridButtons[row][col].setBackground(new Color(255, 193, 7));
                     gridButtons[row][col].setText("?");
                     gridButtons[row][col].setForeground(Color.BLACK);
                     statusLabel.setText("💡 Indice : Case (" + row + "," + col + ") doit être remplie");
                     statusLabel.setForeground(new Color(255, 193, 7));
-                    
+                   
                     // Retour à la normale après 2 secondes
                     Timer timer = new Timer(2000, e -> {
                         updateButtonDisplay(gridButtons[finalRow][finalCol], finalRow, finalCol);
@@ -752,11 +765,11 @@ public class NonogramGame extends JFrame {
         });
         timer.start();
 
-        // Message de victoire 
+        // Message de victoire
         UIManager.put("OptionPane.background", PANEL_COLOR);
         UIManager.put("Panel.background", PANEL_COLOR);
         UIManager.put("OptionPane.messageForeground", Color.WHITE);
-        
+       
         JOptionPane.showMessageDialog(this,
             "🎉 FÉLICITATIONS ! 🎉\n\n" +
             "Vous avez résolu le puzzle " + currentSize + "×" + currentSize + " !\n" +

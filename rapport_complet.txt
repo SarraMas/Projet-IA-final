@@ -1,0 +1,53 @@
+================================================================================
+📊 RAPPORT COMPLET - BENCHMARK NONOGRAM
+================================================================================
+Généré le : Mon Dec 01 14:57:50 CET 2025
+Nombre de puzzles : 150
+Nombre de stratégies : 4
+
+RÉSUMÉ PAR STRATÉGIE :
+================================================================================
+
+🔹 Simple Line Solver (Déduction pure)
+------------------------------------------------------------
+  Succès : 140/150 (93,3%)
+  Temps moyen : 0 ms
+  Backtracks totaux : 0
+  ⭐ Évaluation : EXCELLENT
+
+🔹 Backtracking Solver (Essai-erreur)
+------------------------------------------------------------
+  Succès : 143/150 (95,3%)
+  Temps moyen : 0 ms
+  Backtracks totaux : 12
+  ⭐ Évaluation : EXCELLENT
+
+🔹 Stratégie Logique (Chevauchement)
+------------------------------------------------------------
+  Succès : 3/150 (2,0%)
+  Temps moyen : 0 ms
+  Backtracks totaux : 0
+  ⭐ Évaluation : FAIBLE
+
+🔹 Random Strategy
+------------------------------------------------------------
+  Succès : 0/150 (0,0%)
+  Temps moyen : 4 ms
+  Backtracks totaux : 0
+  ⭐ Évaluation : FAIBLE
+
+================================================================================
+🏆 CLASSEMENT FINAL
+================================================================================
+🥇 1. Backtracking Solver (Essai-erreur)  (Score: 14300,0)
+🥈 2. Simple Line Solver (Déduction pure) (Score: 14000,0)
+🥉 3. Stratégie Logique (Chevauchement)   (Score: 300,0)
+   4. Random Strategy                     (Score: -0,1)
+
+================================================================================
+📈 RECOMMANDATIONS
+================================================================================
+1. Pour les puzzles simples : Simple Line Solver
+2. Pour les puzzles complexes : Backtracking Solver
+3. Pour un compromis vitesse/précision : Logic Strategy
+4. Random Strategy est surtout pédagogique

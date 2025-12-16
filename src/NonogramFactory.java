@@ -1,4 +1,3 @@
-
 public class NonogramFactory {
 	// NonogramFactory.java - Pour créer des puzzles de test
 	    public static Nonogram createSimple5x5() {
@@ -31,4 +30,3 @@ public class NonogramFactory {
 	        return new Nonogram(5, 5, new LineClues(rowClues, colClues), solution);
 	    }
 	}
-

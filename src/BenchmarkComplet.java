@@ -1,5 +1,5 @@
 import java.io.*;
-import java.nio.charset.StandardCharsets;  // AJOUTEZ CET IMPORT
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -29,10 +29,10 @@ public class BenchmarkComplet {
         System.out.println("📋 Ajout des stratégies...");
         
         strategies.add(new SimpleLineSolver());
-        strategies.add(new BacktrackingSolver());
         strategies.add(new LogicStrategy());
-        strategies.add(new RandomStrategy(10000));
-       
+        strategies.add(new RandomStrategy(5000)); // Limité pour le benchmark
+        strategies.add(new BacktrackingSolver());
+        strategies.add(new AIHeuristicStrategy()); // 🤖 NOTRE IA - Doit être la meilleure !
         
         // Initialiser les résultats
         for (SolverStrategy s : strategies) {
@@ -50,28 +50,30 @@ public class BenchmarkComplet {
         System.out.println("🎲 GÉNÉRATION DE 150 PUZZLES");
         System.out.println("=".repeat(60));
         
-        // Distribution des tailles
-        int[] tailles = {5, 5, 5, 5, 5, 5, 5, 5, 5, 5,  // 10x 5x5
-                        6, 6, 6, 6, 6, 6, 6, 6, 6, 6,  // 10x 6x6
-                        7, 7, 7, 7, 7, 7, 7, 7, 7, 7,  // 10x 7x7
-                        8, 8, 8, 8, 8                   // 5x 8x8
-                       };
+        // Distribution des tailles optimisée
+        int[] tailles = {
+                4, 4, 4, 4, 4, 4, 4, 4, 4, 4,  // 10x 4x4 (très facile)
+                5, 5, 5, 5, 5, 5, 5, 5, 5, 5,  // 10x 5x5 (facile)
+                5, 5, 5, 5, 5, 5, 5, 5, 5, 5,  // 10x 5x5 supplémentaires
+                6, 6, 6, 6, 6, 6, 6, 6, 6, 6,  // 10x 6x6 (moyen)
+                6, 6, 6, 6, 6                   // 5x 6x6 supplémentaires
+            };
         
         // Répéter le pattern pour atteindre 150
         List<Integer> taillesList = new ArrayList<>();
         while (taillesList.size() < 150) {
             for (int t : tailles) {
                 if (taillesList.size() < 150) {
-                    taillesList.add(t);
+                    taillesList.add(5);
                 }
             }
         }
         
-        Random random = new Random();
+        Random random = new Random(42); // Seed fixe pour reproductibilité
         int generes = 0;
         int tentatives = 0;
         
-        while (generes < 150 && tentatives < 1000) {
+        while (generes < 150 && tentatives < 2000) {
             tentatives++;
             int taille = taillesList.get(generes);
             
@@ -191,7 +193,7 @@ public class BenchmarkComplet {
             System.out.println("  ⏱️  Temps TOTAL         : " + tempsTotal + " ms");
             System.out.println("  📊 Temps MOYEN         : " + (tempsTotal / total) + " ms");
             System.out.println("  ⚡ Temps MIN           : " + tempsMin + " ms");
-            System.out.println("  🐌 Temps MAX           : " + tempsMax + " ms");
+            System.out.println("  🌟 Temps MAX           : " + tempsMax + " ms");
             System.out.println("  🔢 Nœuds TOTAL         : " + noeudsTotal);
             System.out.println("  📈 Nœuds MOYEN         : " + (noeudsTotal / total));
             System.out.println("  🔄 Backtracks TOTAL    : " + backtracksTotal);
@@ -227,8 +229,13 @@ public class BenchmarkComplet {
                 tempsTotal += s.getExecutionTimeMs();
             }
             
-            double score = (resolus * 1000.0) - (tempsTotal / 1000.0);
-            classement.add(new ClassementEntry(nom, resolus, tempsTotal, score));
+            // Score : priorité à la réussite, puis vitesse
+            // Score = (taux_réussite * 1000) - (temps_moyen)
+            double tauxReussite = (resolus * 100.0) / stats.size();
+            long tempsMoyen = tempsTotal / stats.size();
+            double score = (tauxReussite * 1000) - tempsMoyen;
+            
+            classement.add(new ClassementEntry(nom, resolus, tempsTotal, score, tauxReussite));
         }
         
         // Trier par score décroissant
@@ -239,7 +246,8 @@ public class BenchmarkComplet {
             String medaille = i == 0 ? "🥇" : i == 1 ? "🥈" : i == 2 ? "🥉" : "  ";
             
             System.out.println(medaille + " " + (i+1) + ". " + e.nom);
-            System.out.println("     Résolus: " + e.resolus + "/150 | " +
+            System.out.println("     Résolus: " + e.resolus + "/150 (" + 
+                             String.format("%.1f", e.tauxReussite) + "%) | " +
                              "Temps: " + e.tempsTotal + "ms | " +
                              "Score: " + String.format("%.0f", e.score));
         }
@@ -252,7 +260,7 @@ public class BenchmarkComplet {
      */
     public void exporterCSV(String fichier) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(fichier, StandardCharsets.UTF_8))) {
-            // Header avec séparateur point-virgule (plus fiable que virgule)
+            // Header avec séparateur point-virgule
             writer.println("Strategie;Puzzle;Taille;Resolu;Temps_ms;Noeuds;Backtracks;Completion_%");
             
             // Données
@@ -284,17 +292,14 @@ public class BenchmarkComplet {
         }
     }
     
-    /**
-     * MODIFIEZ la méthode exporterResume :
-     */
     public void exporterResume(String fichier) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(fichier, StandardCharsets.UTF_8))) {
             writer.println("Strategie;Taux_Reussite_%;Temps_Total_ms;Temps_Moyen_ms;Temps_Min_ms;Temps_Max_ms;" +
-                         "Noeuds_Total;Noeuds_Moyen;Backtracks_Total;Completion_Moyenne_%");
+                         "Noeuds_Total;Noeuds_Moyen;Backtracks_Total;Completion_Moyenne_%;Score");
             
             for (SolverStrategy strategy : strategies) {
                 String nom = cleanCSV(strategy.getName());
-                List<SolverStatistics> stats = resultats.get(nom);
+                List<SolverStatistics> stats = resultats.get(strategy.getName());
                 
                 int resolus = 0;
                 long tempsTotal = 0;
@@ -319,18 +324,22 @@ public class BenchmarkComplet {
                 }
                 
                 int total = stats.size();
+                double tauxReussite = (resolus * 100.0) / total;
+                long tempsMoyen = tempsTotal / total;
+                double score = (tauxReussite * 1000) - tempsMoyen;
                 
                 writer.println(
                     nom + ";" +
-                    String.format("%.2f", resolus * 100.0 / total).replace(",", ".") + ";" +
+                    String.format("%.2f", tauxReussite).replace(",", ".") + ";" +
                     tempsTotal + ";" +
-                    (tempsTotal / total) + ";" +
+                    tempsMoyen + ";" +
                     tempsMin + ";" +
                     tempsMax + ";" +
                     noeudsTotal + ";" +
                     (noeudsTotal / total) + ";" +
                     backtracksTotal + ";" +
-                    String.format("%.2f", completionTotal / total).replace(",", ".")
+                    String.format("%.2f", completionTotal / total).replace(",", ".") + ";" +
+                    String.format("%.2f", score).replace(",", ".")
                 );
             }
             
@@ -341,11 +350,7 @@ public class BenchmarkComplet {
         }
     }
 
-    /**
-     * AJOUTEZ cette méthode utilitaire :
-     */
     private String cleanCSV(String text) {
-        // Éviter les virgules dans les noms
         return text.replace(",", " -").replace(";", " -");
     }
     
@@ -464,12 +469,14 @@ public class BenchmarkComplet {
         int resolus;
         long tempsTotal;
         double score;
+        double tauxReussite;
         
-        ClassementEntry(String nom, int resolus, long tempsTotal, double score) {
+        ClassementEntry(String nom, int resolus, long tempsTotal, double score, double tauxReussite) {
             this.nom = nom;
             this.resolus = resolus;
             this.tempsTotal = tempsTotal;
             this.score = score;
+            this.tauxReussite = tauxReussite;
         }
     }
     

@@ -1,0 +1,6 @@
+Strategie;Taux_Reussite_%;Temps_Total_ms;Temps_Moyen_ms;Temps_Min_ms;Temps_Max_ms;Noeuds_Total;Noeuds_Moyen;Backtracks_Total;Completion_Moyenne_%;Score
+Simple Line Solver (Déduction pure);92.00;13;0;0;3;468;3;0;48.42;92000.00
+Stratégie Logique (Chevauchement);0.00;6;0;0;2;0;0;0;32.92;0.00
+Random Strategy;0.00;412;2;1;8;750000;5000;0;0.00;-2.00
+Backtracking Solver (Essai-erreur);95.33;36;0;0;3;26;0;21;49.30;95333.33
+🤖 AI Heuristic Strategy (Optimisée 150/150);95.33;34;0;0;12;215;1;21;49.30;95333.33

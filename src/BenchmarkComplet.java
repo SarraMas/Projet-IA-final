@@ -3,17 +3,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
- * 📊 SYSTÈME DE BENCHMARK COMPLET
- * 
- * Génère 150 puzzles et teste toutes les stratégies
- * Compare : temps, nombre de nœuds explorés, taux de réussite
+ * 📊 BENCHMARK COMPLET - VERSION OPTIMISÉE
+ * Génère 150 puzzles VALIDES et teste toutes les stratégies
  */
 public class BenchmarkComplet {
     
     private List<SolverStrategy> strategies;
     private List<Nonogram> puzzles150;
-    
-    // Résultats : Map<Nom Stratégie, Liste des stats pour chaque puzzle>
     private Map<String, List<SolverStatistics>> resultats;
     
     public BenchmarkComplet() {
@@ -22,19 +18,15 @@ public class BenchmarkComplet {
         this.resultats = new HashMap<>();
     }
     
-    /**
-     * 🎯 ÉTAPE 1 : Ajouter toutes les stratégies à tester
-     */
     public void ajouterStrategies() {
         System.out.println("📋 Ajout des stratégies...");
         
         strategies.add(new SimpleLineSolver());
         strategies.add(new LogicStrategy());
-        strategies.add(new RandomStrategy(5000)); // Limité pour le benchmark
+        strategies.add(new RandomStrategy(3000));
         strategies.add(new BacktrackingSolver());
-        strategies.add(new AIHeuristicStrategy()); // 🤖 NOTRE IA - Doit être la meilleure !
+        strategies.add(new AIHeuristicStrategy());
         
-        // Initialiser les résultats
         for (SolverStrategy s : strategies) {
             resultats.put(s.getName(), new ArrayList<>());
             System.out.println("  ✅ " + s.getName());
@@ -44,38 +36,44 @@ public class BenchmarkComplet {
     }
     
     /**
-     * 🎲 ÉTAPE 2 : Générer 150 puzzles valides
+     * 🎲 GÉNÉRATION OPTIMISÉE - Distribution progressive
      */
     public void generer150Puzzles() {
         System.out.println("🎲 GÉNÉRATION DE 150 PUZZLES");
         System.out.println("=".repeat(60));
         
-        // Distribution des tailles optimisée
-        int[] tailles = {
-                4, 4, 4, 4, 4, 4, 4, 4, 4, 4,  // 10x 4x4 (très facile)
-                5, 5, 5, 5, 5, 5, 5, 5, 5, 5,  // 10x 5x5 (facile)
-                5, 5, 5, 5, 5, 5, 5, 5, 5, 5,  // 10x 5x5 supplémentaires
-                6, 6, 6, 6, 6, 6, 6, 6, 6, 6,  // 10x 6x6 (moyen)
-                6, 6, 6, 6, 6                   // 5x 6x6 supplémentaires
-            };
-        
-        // Répéter le pattern pour atteindre 150
-        List<Integer> taillesList = new ArrayList<>();
-        while (taillesList.size() < 150) {
-            for (int t : tailles) {
-                if (taillesList.size() < 150) {
-                    taillesList.add(5);
-                }
-            }
-        }
-        
-        Random random = new Random(42); // Seed fixe pour reproductibilité
+        Random random = new Random(42);
         int generes = 0;
         int tentatives = 0;
+        int maxTentatives = 3000;
         
-        while (generes < 150 && tentatives < 2000) {
+        // Distribution : beaucoup de petits, quelques moyens
+        int[] distribution = {
+            3,3,3,3,3,3,3,3,3,3, // 10× 3×3
+            4,4,4,4,4,4,4,4,4,4,4,4,4,4,4, // 15× 4×4
+            4,4,4,4,4,4,4,4,4,4, // 10× 4×4
+            5,5,5,5,5,5,5,5,5,5,5,5,5,5,5, // 15× 5×5
+            5,5,5,5,5,5,5,5,5,5,5,5,5,5,5, // 15× 5×5
+            5,5,5,5,5, // 5× 5×5
+            6,6,6,6,6,6,6,6,6,6, // 10× 6×6
+            6,6,6,6,6,6,6,6,6,6, // 10× 6×6
+            7,7,7,7,7,7,7,7,7,7 // 10× 7×7
+        };
+        
+        // Compléter jusqu'à 150
+        List<Integer> tailles = new ArrayList<>();
+        for (int t : distribution) {
+            tailles.add(t);
+        }
+        while (tailles.size() < 150) {
+            tailles.add(5); // Remplir avec du 5×5
+        }
+        
+        Collections.shuffle(tailles, random);
+        
+        while (generes < 150 && tentatives < maxTentatives) {
             tentatives++;
-            int taille = taillesList.get(generes);
+            int taille = tailles.get(generes);
             
             Nonogram puzzle = genererPuzzleValide(taille, random);
             
@@ -87,26 +85,25 @@ public class BenchmarkComplet {
                     System.out.println("  ✅ " + generes + "/150 puzzles générés");
                 }
             }
+            
+            if (tentatives % 100 == 0) {
+                System.out.println("  ⏳ Tentatives : " + tentatives + " | Générés : " + generes);
+            }
         }
         
         System.out.println("✅ GÉNÉRATION TERMINÉE : " + puzzles150.size() + " puzzles\n");
     }
     
     /**
-     * 🏃 ÉTAPE 3 : Exécuter tous les tests
+     * 🏃 BENCHMARK avec timeout par puzzle
      */
     public void executerBenchmark() {
         System.out.println("🚀 EXÉCUTION DU BENCHMARK");
         System.out.println("=".repeat(60));
         System.out.println("Puzzles : " + puzzles150.size());
         System.out.println("Stratégies : " + strategies.size());
-        System.out.println("Tests totaux : " + (puzzles150.size() * strategies.size()));
         System.out.println();
         
-        int testTotal = 0;
-        int testMax = puzzles150.size() * strategies.size();
-        
-        // Pour chaque stratégie
         for (int s = 0; s < strategies.size(); s++) {
             SolverStrategy strategy = strategies.get(s);
             
@@ -115,25 +112,22 @@ public class BenchmarkComplet {
             
             List<SolverStatistics> statsStrategie = resultats.get(strategy.getName());
             
-            // Tester sur les 150 puzzles
             for (int p = 0; p < puzzles150.size(); p++) {
-                testTotal++;
                 Nonogram puzzle = puzzles150.get(p);
-                
-                // Copie pour ne pas modifier l'original
                 Nonogram copie = copierPuzzle(puzzle);
                 
-                // Afficher progression
                 if (p % 30 == 0) {
-                    System.out.println("  📌 Puzzle " + (p+1) + "/150 (" + 
-                                     (testTotal * 100 / testMax) + "% total)");
+                    System.out.println("  📌 Puzzle " + (p+1) + "/150");
                 }
                 
-                // Résoudre avec timeout
                 strategy.resetStatistics();
-                boolean resolu = resoudreAvecTimeout(strategy, copie, 30000); // 30s max
                 
-                // Enregistrer les stats
+                // Timeout adaptatif selon la taille
+                int taille = puzzle.getWidth();
+                long timeout = taille <= 5 ? 30000 : taille <= 7 ? 60000 : 120000;
+                
+                boolean resolu = resoudreAvecTimeout(strategy, copie, timeout);
+                
                 SolverStatistics stats = strategy.getStatistics();
                 statsStrategie.add(stats);
             }
@@ -145,7 +139,7 @@ public class BenchmarkComplet {
     }
     
     /**
-     * 📈 ÉTAPE 4 : Afficher les résultats comparatifs
+     * 📈 RÉSULTATS COMPLETS
      */
     public void afficherResultatsComplets() {
         System.out.println("=".repeat(80));
@@ -153,7 +147,6 @@ public class BenchmarkComplet {
         System.out.println("=".repeat(80));
         System.out.println();
         
-        // Pour chaque stratégie
         for (SolverStrategy strategy : strategies) {
             String nom = strategy.getName();
             List<SolverStatistics> stats = resultats.get(nom);
@@ -161,7 +154,6 @@ public class BenchmarkComplet {
             System.out.println("🔹 " + nom);
             System.out.println("-".repeat(80));
             
-            // Calculer les métriques
             int resolus = 0;
             long tempsTotal = 0;
             long noeudsTotal = 0;
@@ -187,7 +179,6 @@ public class BenchmarkComplet {
             int total = stats.size();
             double tauxReussite = (resolus * 100.0) / total;
             
-            // Affichage
             System.out.println("  ✅ Taux de réussite     : " + resolus + "/" + total + 
                              " (" + String.format("%.1f", tauxReussite) + "%)");
             System.out.println("  ⏱️  Temps TOTAL         : " + tempsTotal + " ms");
@@ -197,19 +188,18 @@ public class BenchmarkComplet {
             System.out.println("  🔢 Nœuds TOTAL         : " + noeudsTotal);
             System.out.println("  📈 Nœuds MOYEN         : " + (noeudsTotal / total));
             System.out.println("  🔄 Backtracks TOTAL    : " + backtracksTotal);
-            System.out.println("  📊 Completion MOYENNE  : " + 
+            System.out.println("  📊 Complétion MOYENNE  : " + 
                              String.format("%.1f", completionTotal / total) + "%");
             System.out.println();
         }
         
-        // Classement
         afficherClassement();
         
         System.out.println("=".repeat(80));
     }
     
     /**
-     * 🏆 Affiche le classement des stratégies
+     * 🏆 CLASSEMENT
      */
     private void afficherClassement() {
         System.out.println("🏆 CLASSEMENT DES STRATÉGIES");
@@ -229,8 +219,6 @@ public class BenchmarkComplet {
                 tempsTotal += s.getExecutionTimeMs();
             }
             
-            // Score : priorité à la réussite, puis vitesse
-            // Score = (taux_réussite * 1000) - (temps_moyen)
             double tauxReussite = (resolus * 100.0) / stats.size();
             long tempsMoyen = tempsTotal / stats.size();
             double score = (tauxReussite * 1000) - tempsMoyen;
@@ -238,7 +226,6 @@ public class BenchmarkComplet {
             classement.add(new ClassementEntry(nom, resolus, tempsTotal, score, tauxReussite));
         }
         
-        // Trier par score décroissant
         classement.sort((a, b) -> Double.compare(b.score, a.score));
         
         for (int i = 0; i < classement.size(); i++) {
@@ -256,14 +243,12 @@ public class BenchmarkComplet {
     }
     
     /**
-     * 💾 ÉTAPE 5 : Exporter en CSV
+     * 💾 EXPORT CSV
      */
     public void exporterCSV(String fichier) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(fichier, StandardCharsets.UTF_8))) {
-            // Header avec séparateur point-virgule
             writer.println("Strategie;Puzzle;Taille;Resolu;Temps_ms;Noeuds;Backtracks;Completion_%");
             
-            // Données
             for (SolverStrategy strategy : strategies) {
                 String nom = cleanCSV(strategy.getName());
                 List<SolverStatistics> stats = resultats.get(strategy.getName());
@@ -354,14 +339,19 @@ public class BenchmarkComplet {
         return text.replace(",", " -").replace(";", " -");
     }
     
-    // ========== MÉTHODES UTILITAIRES ==========
+    // ========== GÉNÉRATION DE PUZZLES VALIDES ==========
     
+    /**
+     * 🔥 GÉNÉRATION OPTIMISÉE avec validation stricte
+     */
     private Nonogram genererPuzzleValide(int taille, Random random) {
-        int maxTentatives = 100;
+        int maxTentatives = 200;
         
         for (int t = 0; t < maxTentatives; t++) {
             CellState[][] solution = new CellState[taille][taille];
-            double densite = 0.35 + random.nextDouble() * 0.2;
+            
+            // Densité adaptative
+            double densite = 0.25 + random.nextDouble() * 0.3;
             
             for (int i = 0; i < taille; i++) {
                 for (int j = 0; j < taille; j++) {
@@ -370,15 +360,20 @@ public class BenchmarkComplet {
                 }
             }
             
-            // Garantir cases remplies
+            // S'assurer qu'il y a des cases remplies (mais pas forcément partout)
             for (int i = 0; i < taille; i++) {
                 boolean ligneOk = false, colOk = false;
                 for (int j = 0; j < taille; j++) {
                     if (solution[i][j] == CellState.FILLED) ligneOk = true;
                     if (solution[j][i] == CellState.FILLED) colOk = true;
                 }
-                if (!ligneOk) solution[i][random.nextInt(taille)] = CellState.FILLED;
-                if (!colOk) solution[random.nextInt(taille)][i] = CellState.FILLED;
+                // Ne forcer que si vraiment vide ET aléatoirement
+                if (!ligneOk && random.nextDouble() > 0.4) {
+                    solution[i][random.nextInt(taille)] = CellState.FILLED;
+                }
+                if (!colOk && random.nextDouble() > 0.4) {
+                    solution[random.nextInt(taille)][i] = CellState.FILLED;
+                }
             }
             
             int[][] rowClues = calculerIndicesLignes(solution, taille);
@@ -429,7 +424,7 @@ public class BenchmarkComplet {
                 }
             }
             if (count > 0) clues.add(count);
-            indices[i] = clues.isEmpty() ? new int[]{0} : 
+            indices[i] = clues.isEmpty() ? new int[0] : 
                          clues.stream().mapToInt(Integer::intValue).toArray();
         }
         return indices;
@@ -449,7 +444,7 @@ public class BenchmarkComplet {
                 }
             }
             if (count > 0) clues.add(count);
-            indices[j] = clues.isEmpty() ? new int[]{0} : 
+            indices[j] = clues.isEmpty() ? new int[0] : 
                          clues.stream().mapToInt(Integer::intValue).toArray();
         }
         return indices;
@@ -480,9 +475,6 @@ public class BenchmarkComplet {
         }
     }
     
-    /**
-     * 🚀 MAIN : Lance le benchmark complet
-     */
     public static void main(String[] args) {
         BenchmarkComplet benchmark = new BenchmarkComplet();
         
@@ -490,19 +482,11 @@ public class BenchmarkComplet {
         System.out.println("=".repeat(80));
         System.out.println();
         
-        // Étape 1 : Ajouter les stratégies
         benchmark.ajouterStrategies();
-        
-        // Étape 2 : Générer 150 puzzles
         benchmark.generer150Puzzles();
-        
-        // Étape 3 : Exécuter tous les tests
         benchmark.executerBenchmark();
-        
-        // Étape 4 : Afficher les résultats
         benchmark.afficherResultatsComplets();
         
-        // Étape 5 : Exporter
         benchmark.exporterCSV("resultats_detailles.csv");
         benchmark.exporterResume("resultats_resume.csv");
         

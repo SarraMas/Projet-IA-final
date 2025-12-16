@@ -1,16 +1,16 @@
 import java.util.*;
 
 /**
- * 🤖 STRATÉGIE IA HEURISTIQUE - VERSION OPTIMISÉE POUR 150/150
+ * 🤖 STRATÉGIE IA ULTRA-OPTIMISÉE v2
  * 
  * AMÉLIORATIONS MAJEURES :
- * 1. Limites augmentées (200k backtracks, 180s timeout)
- * 2. Heuristique améliorée avec plusieurs critères
- * 3. Déduction plus agressive avant backtracking
- * 4. Détection précoce optimisée
- * 5. Priorisation intelligente des cases
+ * 1. Cache des lignes possibles (évite recalculs)
+ * 2. Propagation de contraintes agressive
+ * 3. Heuristique MRV (Minimum Remaining Values)
+ * 4. Détection précoce ultra-rapide
+ * 5. Optimisation mémoire
  * 
- * OBJECTIF : Résoudre 150/150 puzzles du benchmark
+ * OBJECTIF : Battre BacktrackingSolver sur 150/150 puzzles
  */
 public class AIHeuristicStrategy implements SolverStrategy {
     
@@ -19,14 +19,15 @@ public class AIHeuristicStrategy implements SolverStrategy {
     private int width;
     private int height;
     
-    // Solveur de lignes intégré
     private SimpleLineSolver lineSolver;
     
-    // 🚀 LIMITES AUGMENTÉES POUR RÉSOUDRE TOUS LES PUZZLES
-    private static final int MAX_BACKTRACKS = 300000; // Augmenté de 50k à 200k
-    private static final long MAX_TIME_MS = 300000; // Augmenté de 60s à 180s
+    // 🚀 LIMITES OPTIMISÉES
+    private static final int MAX_BACKTRACKS = 250000;
+    private static final long MAX_TIME_MS = 120000;
     
-    // Mode pas-à-pas
+    // 💾 CACHE pour éviter recalculs
+    private Map<String, List<CellState[]>> cacheLinesPossibles;
+    
     private boolean stepByStepMode = false;
     private Queue<CellChange> changeQueue;
     
@@ -42,11 +43,12 @@ public class AIHeuristicStrategy implements SolverStrategy {
         this.stats = new SolverStatistics();
         this.lineSolver = new SimpleLineSolver();
         this.changeQueue = new LinkedList<>();
+        this.cacheLinesPossibles = new HashMap<>();
     }
     
     @Override
     public String getName() {
-        return "🤖 AI Heuristic Strategy (Optimisée 150/150)";
+        return "🤖 AI Heuristic Strategy (Ultra-Optimisée v2)";
     }
     
     @Override
@@ -58,6 +60,7 @@ public class AIHeuristicStrategy implements SolverStrategy {
     public void resetStatistics() {
         this.stats = new SolverStatistics();
         this.changeQueue.clear();
+        this.cacheLinesPossibles.clear();
     }
     
     @Override
@@ -72,6 +75,7 @@ public class AIHeuristicStrategy implements SolverStrategy {
         this.nonogram = nonogram;
         this.width = nonogram.getWidth();
         this.height = nonogram.getHeight();
+        this.cacheLinesPossibles.clear();
         
         long startTime = System.currentTimeMillis();
         
@@ -80,20 +84,16 @@ public class AIHeuristicStrategy implements SolverStrategy {
             return false;
         }
         
-        // PHASE 1 : Déduction pure maximale (plusieurs passes)
-        System.out.println("🧠 Phase 1: Déduction logique avancée...");
-        applyAdvancedDeduction();
-        stats.setCellsSolvedByDeduction(countFilledCells());
-        System.out.println("  ✅ " + stats.getCellsSolvedByDeduction() + " cases déduites");
+        // PHASE 1 : Déduction ULTRA-AGRESSIVE
+        applyUltraAggressiveDeduction();
+        stats.setCellsSolvedByDeduction(countDeterminedCells());
         
         boolean solved;
         if (nonogram.isSolved()) {
-            System.out.println("✅ Résolu par déduction pure !");
             solved = true;
         } else {
-            // PHASE 2 : Backtracking guidé par heuristiques améliorées
-            System.out.println("🎯 Phase 2: Backtracking intelligent optimisé...");
-            solved = smartBacktrack(startTime, 0);
+            // PHASE 2 : Backtracking avec MRV
+            solved = mrvBacktrack(startTime, 0);
         }
         
         // Statistiques finales
@@ -102,9 +102,9 @@ public class AIHeuristicStrategy implements SolverStrategy {
         stats.setSolved(solved);
         
         int totalCells = width * height;
-        int filledCells = countFilledCells();
-        stats.setCompletionPercentage((filledCells * 100.0) / totalCells);
-        stats.setCellsSolvedByGuessing(filledCells - stats.getCellsSolvedByDeduction());
+        int determinedCells = countDeterminedCells();
+        stats.setCompletionPercentage((determinedCells * 100.0) / totalCells);
+        stats.setCellsSolvedByGuessing(determinedCells - stats.getCellsSolvedByDeduction());
         
         if (!solved) {
             if (stats.getBacktrackCount() >= MAX_BACKTRACKS) {
@@ -114,54 +114,55 @@ public class AIHeuristicStrategy implements SolverStrategy {
             }
         }
         
-        System.out.println("Résultat: " + (solved ? "✅ RÉSOLU" : "❌ ÉCHEC"));
-        System.out.println("  Temps: " + stats.getExecutionTimeMs() + "ms");
-        System.out.println("  Backtracks: " + stats.getBacktrackCount());
-        
         return solved;
     }
     
     /**
-     * 🧠 DÉDUCTION AVANCÉE : Plus de passes et plus agressive
+     * 🧠 DÉDUCTION ULTRA-AGRESSIVE avec propagation
      */
-    private void applyAdvancedDeduction() {
+    private void applyUltraAggressiveDeduction() {
         boolean progress = true;
         int iterations = 0;
-        int maxIterations = 100; // Augmenté de 50 à 100
+        int maxIterations = 100;
         
         while (progress && iterations < maxIterations && !nonogram.isSolved()) {
             progress = false;
             iterations++;
             stats.incrementSteps();
             
-            // Technique 1 : Simple line solving (plusieurs passes)
+            // Technique 1 : Line solving multiple passes
             for (int pass = 0; pass < 3; pass++) {
                 if (lineSolver.solve(nonogram)) {
                     progress = true;
                 }
             }
             
-            // Technique 2 : Analyse de probabilités (cases certaines à 100%)
-            if (applyCertainCells()) {
+            // Technique 2 : Cases certaines avec cache
+            if (applyCertainCellsWithCache()) {
                 progress = true;
             }
             
-            // Technique 3 : Détection de cases impossibles
+            // Technique 3 : Propagation de contraintes
+            if (propagateConstraints()) {
+                progress = true;
+            }
+            
+            // Technique 4 : Marquer impossible
             if (markImpossibleCells()) {
                 progress = true;
             }
             
-            // Technique 4 : Cases avec probabilité très élevée/faible
-            if (applyHighConfidenceCells()) {
+            // 🔥 NOUVEAU : Forced cells (cases forcées)
+            if (applyForcedCells()) {
                 progress = true;
             }
         }
     }
     
     /**
-     * 📊 ANALYSE DE PROBABILITÉS : Identifie les cases certaines
+     * 📊 CASES CERTAINES avec CACHE
      */
-    private boolean applyCertainCells() {
+    private boolean applyCertainCellsWithCache() {
         boolean changed = false;
         
         for (int row = 0; row < height; row++) {
@@ -170,16 +171,13 @@ public class AIHeuristicStrategy implements SolverStrategy {
                     continue;
                 }
                 
-                double prob = calculateProbability(row, col);
+                double prob = calculateProbabilityWithCache(row, col);
                 
-                // Si probabilité = 1.0 → certainement FILLED
-                if (prob >= 0.9999) {
+                if (prob >= 0.999) {
                     nonogram.setCell(row, col, CellState.FILLED);
                     stats.incrementDeductionCells();
                     changed = true;
-                }
-                // Si probabilité = 0.0 → certainement CROSSED
-                else if (prob <= 0.0001) {
+                } else if (prob <= 0.001) {
                     nonogram.setCell(row, col, CellState.CROSSED);
                     stats.incrementDeductionCells();
                     changed = true;
@@ -191,49 +189,18 @@ public class AIHeuristicStrategy implements SolverStrategy {
     }
     
     /**
-     * 🎯 NOUVELLE TECHNIQUE : Cases avec haute confiance (>95% ou <5%)
+     * 🎯 CALCUL DE PROBABILITÉ avec CACHE
      */
-    private boolean applyHighConfidenceCells() {
-        boolean changed = false;
-        
-        for (int row = 0; row < height; row++) {
-            for (int col = 0; col < width; col++) {
-                if (nonogram.getCell(row, col) != CellState.EMPTY) {
-                    continue;
-                }
-                
-                double prob = calculateProbability(row, col);
-                
-                // Haute confiance FILLED (>98%)
-                if (prob >= 0.98) {
-                    nonogram.setCell(row, col, CellState.FILLED);
-                    stats.incrementDeductionCells();
-                    changed = true;
-                }
-                // Haute confiance CROSSED (<2%)
-                else if (prob <= 0.02) {
-                    nonogram.setCell(row, col, CellState.CROSSED);
-                    stats.incrementDeductionCells();
-                    changed = true;
-                }
-            }
-        }
-        
-        return changed;
-    }
-    
-    /**
-     * 🎯 CALCUL DE PROBABILITÉ pour une case - OPTIMISÉ
-     */
-    private double calculateProbability(int row, int col) {
-        // Analyser la ligne
-        List<CellState[]> rowSolutions = generatePossibleLines(
+    private double calculateProbabilityWithCache(int row, int col) {
+        List<CellState[]> rowSolutions = getPossibleLinesWithCache(
             getRow(row), 
             nonogram.getClues().getRowClues()[row],
-            width
+            width,
+            true,
+            row
         );
         
-        if (rowSolutions.isEmpty()) return 0.5; // Défaut si aucune solution
+        if (rowSolutions.isEmpty()) return 0.5;
         
         int rowFilled = 0;
         for (CellState[] sol : rowSolutions) {
@@ -241,14 +208,15 @@ public class AIHeuristicStrategy implements SolverStrategy {
         }
         double rowProb = (double) rowFilled / rowSolutions.size();
         
-        // Analyser la colonne
-        List<CellState[]> colSolutions = generatePossibleLines(
+        List<CellState[]> colSolutions = getPossibleLinesWithCache(
             getColumn(col),
             nonogram.getClues().getColClues()[col],
-            height
+            height,
+            false,
+            col
         );
         
-        if (colSolutions.isEmpty()) return 0.5; // Défaut si aucune solution
+        if (colSolutions.isEmpty()) return 0.5;
         
         int colFilled = 0;
         for (CellState[] sol : colSolutions) {
@@ -256,9 +224,137 @@ public class AIHeuristicStrategy implements SolverStrategy {
         }
         double colProb = (double) colFilled / colSolutions.size();
         
-        // Combiner les probabilités (moyenne pondérée)
-        // Donner plus de poids au plus restrictif
         return Math.min(rowProb, colProb);
+    }
+    
+    /**
+     * 💾 GET POSSIBLE LINES avec CACHE
+     */
+    private List<CellState[]> getPossibleLinesWithCache(CellState[] current, int[] clue, 
+                                                         int length, boolean isRow, int index) {
+        String key = generateCacheKey(current, clue, isRow, index);
+        
+        if (cacheLinesPossibles.containsKey(key)) {
+            return cacheLinesPossibles.get(key);
+        }
+        
+        List<CellState[]> result = generatePossibleLines(current, clue, length);
+        cacheLinesPossibles.put(key, result);
+        
+        return result;
+    }
+    
+    private String generateCacheKey(CellState[] line, int[] clue, boolean isRow, int index) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(isRow ? "R" : "C").append(index).append(":");
+        for (CellState c : line) {
+            sb.append(c == CellState.FILLED ? "F" : c == CellState.CROSSED ? "X" : "E");
+        }
+        sb.append(":");
+        for (int i : clue) {
+            sb.append(i).append(",");
+        }
+        return sb.toString();
+    }
+    
+    /**
+     * 🔥 NOUVEAU : FORCED CELLS (cases forcées par contraintes)
+     */
+    private boolean applyForcedCells() {
+        boolean changed = false;
+        
+        // Pour chaque ligne
+        for (int row = 0; row < height; row++) {
+            CellState[] line = getRow(row);
+            int[] clue = nonogram.getClues().getRowClues()[row];
+            
+            List<CellState[]> solutions = getPossibleLinesWithCache(line, clue, width, true, row);
+            
+            if (solutions.isEmpty()) continue;
+            if (solutions.size() == 1) {
+                // Une seule solution possible !
+                for (int col = 0; col < width; col++) {
+                    if (line[col] == CellState.EMPTY) {
+                        nonogram.setCell(row, col, solutions.get(0)[col]);
+                        stats.incrementDeductionCells();
+                        changed = true;
+                    }
+                }
+            }
+        }
+        
+        // Pour chaque colonne
+        for (int col = 0; col < width; col++) {
+            CellState[] column = getColumn(col);
+            int[] clue = nonogram.getClues().getColClues()[col];
+            
+            List<CellState[]> solutions = getPossibleLinesWithCache(column, clue, height, false, col);
+            
+            if (solutions.isEmpty()) continue;
+            if (solutions.size() == 1) {
+                for (int row = 0; row < height; row++) {
+                    if (column[row] == CellState.EMPTY) {
+                        nonogram.setCell(row, col, solutions.get(0)[row]);
+                        stats.incrementDeductionCells();
+                        changed = true;
+                    }
+                }
+            }
+        }
+        
+        return changed;
+    }
+    
+    /**
+     * 🔗 PROPAGATION DE CONTRAINTES
+     */
+    private boolean propagateConstraints() {
+        boolean changed = false;
+        
+        for (int row = 0; row < height; row++) {
+            for (int col = 0; col < width; col++) {
+                if (nonogram.getCell(row, col) != CellState.EMPTY) {
+                    continue;
+                }
+                
+                // Si cette case ne peut être que FILLED dans toutes les solutions
+                if (mustBeFilled(row, col)) {
+                    nonogram.setCell(row, col, CellState.FILLED);
+                    stats.incrementDeductionCells();
+                    changed = true;
+                }
+                // Si cette case ne peut être que CROSSED dans toutes les solutions
+                else if (mustBeCrossed(row, col)) {
+                    nonogram.setCell(row, col, CellState.CROSSED);
+                    stats.incrementDeductionCells();
+                    changed = true;
+                }
+            }
+        }
+        
+        return changed;
+    }
+    
+    private boolean mustBeFilled(int row, int col) {
+        List<CellState[]> rowSolutions = getPossibleLinesWithCache(
+            getRow(row), nonogram.getClues().getRowClues()[row], width, true, row);
+        
+        for (CellState[] sol : rowSolutions) {
+            if (sol[col] != CellState.FILLED) return false;
+        }
+        
+        return !rowSolutions.isEmpty();
+    }
+    
+    private boolean mustBeCrossed(int row, int col) {
+        List<CellState[]> rowSolutions = getPossibleLinesWithCache(
+            getRow(row), nonogram.getClues().getRowClues()[row], width, true, row);
+        
+        for (CellState[] sol : rowSolutions) {
+            if (sol[col] != CellState.CROSSED) return false;
+        }
+        
+        return !rowSolutions.isEmpty();
     }
     
     /**
@@ -267,7 +363,6 @@ public class AIHeuristicStrategy implements SolverStrategy {
     private boolean markImpossibleCells() {
         boolean changed = false;
         
-        // Vérifier les lignes complètes
         for (int row = 0; row < height; row++) {
             if (isLineComplete(getRow(row), nonogram.getClues().getRowClues()[row])) {
                 for (int col = 0; col < width; col++) {
@@ -280,7 +375,6 @@ public class AIHeuristicStrategy implements SolverStrategy {
             }
         }
         
-        // Vérifier les colonnes complètes
         for (int col = 0; col < width; col++) {
             if (isLineComplete(getColumn(col), nonogram.getClues().getColClues()[col])) {
                 for (int row = 0; row < height; row++) {
@@ -297,76 +391,75 @@ public class AIHeuristicStrategy implements SolverStrategy {
     }
     
     /**
-     * 🎲 BACKTRACKING INTELLIGENT - VERSION OPTIMISÉE
+     * 🎲 BACKTRACKING avec MRV (Minimum Remaining Values)
      */
-    private boolean smartBacktrack(long startTime, int depth) {
+    private boolean mrvBacktrack(long startTime, int depth) {
         stats.incrementSteps();
         
-        // Sécurités
         if (System.currentTimeMillis() - startTime > MAX_TIME_MS) return false;
         if (stats.getBacktrackCount() > MAX_BACKTRACKS) return false;
         if (depth > width * height) return false;
         
-        // Vérifications
         if (nonogram.isSolved()) return true;
-        if (hasContradiction()) {
+        if (hasContradictionFast()) {
             stats.incrementBacktracks();
             return false;
         }
         
-        // 🚀 Appliquer la déduction AGRESSIVE après chaque choix
-        applyAdvancedDeduction();
+        // Déduction rapide
+        for (int i = 0; i < 2; i++) {
+            lineSolver.solve(nonogram);
+            applyCertainCellsWithCache();
+        }
         
         if (nonogram.isSolved()) return true;
-        if (hasContradiction()) {
+        if (hasContradictionFast()) {
             stats.incrementBacktracks();
             return false;
         }
         
-        // 🎯 HEURISTIQUE AMÉLIORÉE : Choisir la meilleure case
-        CellChoice choice = findBestCellToGuess();
+        // 🎯 MRV : Choisir la case avec le moins de solutions possibles
+        CellChoice choice = findBestCellMRV();
         
         if (choice == null) {
             stats.incrementBacktracks();
             return false;
         }
         
-        // Sauvegarder l'état
         CellState[][] backup = copyGrid();
         
-        // 🎯 Essayer d'abord la valeur la plus probable
         CellState firstTry = choice.probability > 0.5 ? CellState.FILLED : CellState.CROSSED;
         CellState secondTry = firstTry == CellState.FILLED ? CellState.CROSSED : CellState.FILLED;
         
-        // Essai 1
         nonogram.setCell(choice.row, choice.col, firstTry);
-        if (smartBacktrack(startTime, depth + 1)) {
+        cacheLinesPossibles.clear(); // Invalider cache
+        
+        if (mrvBacktrack(startTime, depth + 1)) {
             return true;
         }
         
-        // Échec - restaurer
         stats.incrementBacktracks();
         restoreGrid(backup);
+        cacheLinesPossibles.clear();
         
-        // Essai 2
         nonogram.setCell(choice.row, choice.col, secondTry);
-        if (smartBacktrack(startTime, depth + 1)) {
+        
+        if (mrvBacktrack(startTime, depth + 1)) {
             return true;
         }
         
-        // Les deux ont échoué
         stats.incrementBacktracks();
         restoreGrid(backup);
+        cacheLinesPossibles.clear();
         return false;
     }
     
     /**
-     * 🎯 HEURISTIQUE AMÉLIORÉE : Trouve la meilleure case à deviner
-     * Critères multiples avec pondération intelligente
+     * 🎯 HEURISTIQUE MRV : Minimum Remaining Values
      */
-    private CellChoice findBestCellToGuess() {
+    private CellChoice findBestCellMRV() {
         CellChoice best = null;
-        double bestScore = -1;
+        double bestScore = Double.MAX_VALUE;
         
         for (int row = 0; row < height; row++) {
             for (int col = 0; col < width; col++) {
@@ -374,38 +467,23 @@ public class AIHeuristicStrategy implements SolverStrategy {
                     continue;
                 }
                 
-                double prob = calculateProbability(row, col);
+                // Compter les solutions possibles
+                List<CellState[]> rowSolutions = getPossibleLinesWithCache(
+                    getRow(row), nonogram.getClues().getRowClues()[row], width, true, row);
+                List<CellState[]> colSolutions = getPossibleLinesWithCache(
+                    getColumn(col), nonogram.getClues().getColClues()[col], height, false, col);
                 
-                // 📊 SCORE MULTI-CRITÈRES
-                // 1. Certitude (distance à 0.5) - poids 50%
-                double certainty = Math.abs(prob - 0.5) * 2;
+                if (rowSolutions.isEmpty() || colSolutions.isEmpty()) continue;
                 
-                // 2. Nombre de voisins déterminés - poids 30%
-                int neighbors = countDeterminedNeighbors(row, col);
-                double neighborScore = Math.min(neighbors / (double)(width + height), 1.0);
+                // Score = nombre moyen de solutions (moins = mieux)
+                double score = (rowSolutions.size() + colSolutions.size()) / 2.0;
                 
-                // 3. Position centrale (favoriser le centre) - poids 10%
-                double centerDist = Math.sqrt(
-                    Math.pow((row - height/2.0), 2) + 
-                    Math.pow((col - width/2.0), 2)
-                );
-                double maxDist = Math.sqrt(Math.pow(height/2.0, 2) + Math.pow(width/2.0, 2));
-                double centerScore = 1.0 - (centerDist / maxDist);
+                // Bonus pour certitude
+                double prob = calculateProbabilityWithCache(row, col);
+                double certainty = Math.abs(prob - 0.5);
+                score = score * (1 - certainty); // Favoriser cases certaines
                 
-                // 4. Nombre de solutions possibles (moins = mieux) - poids 10%
-                int rowSolutions = generatePossibleLines(getRow(row), 
-                    nonogram.getClues().getRowClues()[row], width).size();
-                int colSolutions = generatePossibleLines(getColumn(col), 
-                    nonogram.getClues().getColClues()[col], height).size();
-                double solutionScore = 1.0 / (1.0 + Math.log(rowSolutions + colSolutions + 1));
-                
-                // Score final pondéré
-                double score = certainty * 50 +
-                              neighborScore * 30 +
-                              centerScore * 10 +
-                              solutionScore * 10;
-                
-                if (score > bestScore) {
+                if (score < bestScore) {
                     bestScore = score;
                     best = new CellChoice(row, col, prob, score);
                 }
@@ -425,26 +503,6 @@ public class AIHeuristicStrategy implements SolverStrategy {
         }
     }
     
-    /**
-     * Compte le nombre de voisins (ligne + colonne) déjà déterminés
-     */
-    private int countDeterminedNeighbors(int row, int col) {
-        int count = 0;
-        
-        for (int c = 0; c < width; c++) {
-            if (nonogram.getCell(row, c) != CellState.EMPTY) count++;
-        }
-        
-        for (int r = 0; r < height; r++) {
-            if (nonogram.getCell(r, col) != CellState.EMPTY) count++;
-        }
-        
-        return count;
-    }
-    
-    /**
-     * Vérifie si une ligne est complète (tous les blocs placés)
-     */
     private boolean isLineComplete(CellState[] line, int[] clue) {
         List<Integer> groups = new ArrayList<>();
         int count = 0;
@@ -469,17 +527,15 @@ public class AIHeuristicStrategy implements SolverStrategy {
     }
     
     /**
-     * 🚨 DÉTECTION DE CONTRADICTION optimisée
+     * 🚨 DÉTECTION RAPIDE DE CONTRADICTION
      */
-    private boolean hasContradiction() {
-        // Vérifier toutes les lignes
+    private boolean hasContradictionFast() {
         for (int row = 0; row < height; row++) {
             if (isLineContradiction(getRow(row), nonogram.getClues().getRowClues()[row])) {
                 return true;
             }
         }
         
-        // Vérifier toutes les colonnes
         for (int col = 0; col < width; col++) {
             if (isLineContradiction(getColumn(col), nonogram.getClues().getColClues()[col])) {
                 return true;
@@ -509,7 +565,6 @@ public class AIHeuristicStrategy implements SolverStrategy {
         }
         if (currentCount > 0) completeGroups.add(currentCount);
         
-        // Ligne complète
         if (!hasEmpty) {
             if (completeGroups.size() != clue.length) return true;
             for (int i = 0; i < completeGroups.size(); i++) {
@@ -518,7 +573,6 @@ public class AIHeuristicStrategy implements SolverStrategy {
             return false;
         }
         
-        // Ligne incomplète
         if (completeGroups.size() > clue.length) return true;
         
         for (int i = 0; i < completeGroups.size(); i++) {
@@ -529,12 +583,12 @@ public class AIHeuristicStrategy implements SolverStrategy {
     }
     
     /**
-     * Génère toutes les lignes possibles compatibles avec l'état actuel
+     * GÉNÉRATION DE LIGNES POSSIBLES
      */
     private List<CellState[]> generatePossibleLines(CellState[] current, int[] clue, int length) {
         List<CellState[]> results = new ArrayList<>();
         
-        if (clue == null || clue.length == 0) {
+        if (clue == null || clue.length == 0 || (clue.length == 1 && clue[0] == 0)) {
             CellState[] line = new CellState[length];
             Arrays.fill(line, CellState.CROSSED);
             if (isCompatible(line, current)) {
@@ -622,15 +676,13 @@ public class AIHeuristicStrategy implements SolverStrategy {
     private void prepareStepByStepSolution() {
         changeQueue.clear();
         
-        // Résoudre dans une copie
         Nonogram copy = new Nonogram(width, height, nonogram.getClues(), nonogram.getSolution());
         solve(copy);
         
-        // Enregistrer les changements
         for (int r = 0; r < height; r++) {
             for (int c = 0; c < width; c++) {
                 CellState target = copy.getCell(r, c);
-                if (nonogram.getCell(r, c) != target) {
+                if (nonogram.getCell(r, c) != target && target != CellState.EMPTY) {
                     changeQueue.add(new CellChange(r, c, target));
                 }
             }
@@ -665,11 +717,11 @@ public class AIHeuristicStrategy implements SolverStrategy {
         return column;
     }
     
-    private int countFilledCells() {
+    private int countDeterminedCells() {
         int count = 0;
         for (int row = 0; row < height; row++) {
             for (int col = 0; col < width; col++) {
-                if (nonogram.getCell(row, col) == CellState.FILLED) {
+                if (nonogram.getCell(row, col) != CellState.EMPTY) {
                     count++;
                 }
             }
@@ -694,5 +746,4 @@ public class AIHeuristicStrategy implements SolverStrategy {
             }
         }
     }
-    
 }

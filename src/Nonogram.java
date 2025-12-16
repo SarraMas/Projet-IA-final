@@ -14,7 +14,6 @@ public class Nonogram {
         initializeGrid();
     }
 
-    // Constructeur avec solution
     public Nonogram(int width, int height, LineClues clues, CellState[][] solution) {
         this.width = width;
         this.height = height;
@@ -28,7 +27,6 @@ public class Nonogram {
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
                 grid[i][j] = CellState.EMPTY;
-                // Initialiser la solution si elle est null
                 if (solution != null && solution[i][j] == null) {
                     solution[i][j] = CellState.EMPTY;
                 }
@@ -36,7 +34,6 @@ public class Nonogram {
         }
     }
 
-    // 🔥 SUPPRIME cette méthode dupliquée - Garde seulement celle-ci :
     public void setCell(int row, int col, CellState state) {
         if (isValidPosition(row, col)) {
             grid[row][col] = state;
@@ -70,47 +67,111 @@ public class Nonogram {
         initializeGrid();
     }
 
-    // 🔥 SUPPRIME cette méthode dupliquée - Garde seulement celle-ci :
     private boolean isValidPosition(int row, int col) {
         return row >= 0 && row < height && col >= 0 && col < width;
     }
 
+    /**
+     * 🔥 MÉTHODE CORRIGÉE - Vérifie que TOUTES les contraintes sont satisfaites
+     */
     public boolean isSolved() {
-        if (solution == null) return false;
+        if (solution == null) {
+            // Pas de solution prédéfinie - vérifier les contraintes
+            return checkAllConstraints();
+        }
         
+        // Vérifier contre la solution
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
                 CellState gridState = grid[i][j];
                 CellState solutionState = solution[i][j];
                 
-                // CAS 1: Dans la solution c'est FILLED → doit être FILLED dans la grille
                 if (solutionState == CellState.FILLED) {
                     if (gridState != CellState.FILLED) {
                         return false;
                     }
-                }
-                // CAS 2: Dans la solution c'est EMPTY → peut être EMPTY ou CROSSED dans la grille
-                // (CROSSED signifie "certainement vide", c'est correct)
-                else if (solutionState == CellState.EMPTY) {
+                } else if (solutionState == CellState.EMPTY) {
                     if (gridState == CellState.FILLED) {
-                        return false; // MAUVAIS: on a rempli une case qui devrait être vide
+                        return false;
                     }
-                    // EMPTY ou CROSSED sont acceptables pour une case vide
                 }
-                // Note: solution ne devrait jamais contenir CROSSED
             }
         }
         return true;
     }
 
-    // Getters
+    /**
+     * ✅ NOUVELLE MÉTHODE - Vérifie toutes les contraintes ligne/colonne
+     */
+    private boolean checkAllConstraints() {
+        // Vérifier toutes les lignes
+        for (int row = 0; row < height; row++) {
+            if (!checkLineConstraint(getRowArray(row), clues.getRowClues()[row])) {
+                return false;
+            }
+        }
+        
+        // Vérifier toutes les colonnes
+        for (int col = 0; col < width; col++) {
+            if (!checkLineConstraint(getColumnArray(col), clues.getColClues()[col])) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
+    /**
+     * ✅ Vérifie qu'une ligne respecte exactement ses contraintes
+     */
+    private boolean checkLineConstraint(CellState[] line, int[] clue) {
+        java.util.List<Integer> groups = new java.util.ArrayList<>();
+        int count = 0;
+        
+        for (CellState cell : line) {
+            if (cell == CellState.FILLED) {
+                count++;
+            } else {
+                if (count > 0) {
+                    groups.add(count);
+                    count = 0;
+                }
+            }
+        }
+        if (count > 0) groups.add(count);
+        
+        // Comparer avec la contrainte
+        if (groups.size() != clue.length) return false;
+        
+        for (int i = 0; i < groups.size(); i++) {
+            if (!groups.get(i).equals(clue[i])) return false;
+        }
+        
+        return true;
+    }
+
+    private CellState[] getRowArray(int row) {
+        CellState[] line = new CellState[width];
+        for (int col = 0; col < width; col++) {
+            line[col] = grid[row][col];
+        }
+        return line;
+    }
+
+    private CellState[] getColumnArray(int col) {
+        CellState[] column = new CellState[height];
+        for (int row = 0; row < height; row++) {
+            column[row] = grid[row][col];
+        }
+        return column;
+    }
+
     public int getWidth() { return width; }
     public int getHeight() { return height; }
     public LineClues getClues() { return clues; }
     public CellState[][] getGrid() { return grid; }
     public CellState[][] getSolution() { return solution; }
 
-    // Méthodes pour debuguer
     public void printGrid() {
         System.out.println("Grille actuelle:");
         for (int i = 0; i < height; i++) {
@@ -124,6 +185,7 @@ public class Nonogram {
             System.out.println();
         }
     }
+
     public int getCompletionPercentage() {
         int total = width * height;
         int filledOrCrossed = 0;
@@ -138,7 +200,6 @@ public class Nonogram {
 
         return (int) ((filledOrCrossed * 100.0) / total);
     }
-
 
     public void printSolution() {
         if (solution == null) {

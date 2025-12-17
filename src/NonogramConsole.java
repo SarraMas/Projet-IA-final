@@ -72,8 +72,7 @@ public class NonogramConsole {
 
             } else if (input.startsWith("c ")) {
 
-                // Commande pour marquer une croix
-
+                
                 try {
 
                     String[] parts = input.split(" ");
@@ -114,8 +113,7 @@ public class NonogramConsole {
 
             } else {
 
-                // Commande normale (toggle)
-
+            
                 try {
 
                     String[] parts = input.split(" ");
@@ -222,11 +220,9 @@ public class NonogramConsole {
 
 
 
-        // Afficher les indices des colonnes (alignés)
-
         for (int clueRow = 0; clueRow < maxClues; clueRow++) {
 
-            // Espace pour les indices des lignes
+          
 
             System.out.print("  ");
 
@@ -274,7 +270,7 @@ public class NonogramConsole {
 
         for (int row = 0; row < nonogram.getHeight(); row++) {
 
-            // Afficher les indices de la ligne (alignés à droite)
+           
 
             for (int clueCol = 0; clueCol < maxRowClues; clueCol++) {
 
@@ -296,7 +292,7 @@ public class NonogramConsole {
 
 
 
-            // Afficher la grille
+         
 
             for (int col = 0; col < nonogram.getWidth(); col++) {
 
@@ -336,7 +332,7 @@ public class NonogramConsole {
 
 
 
-    // Main pour tester la version console
+   
 
     public static void main(String[] args) {
 

@@ -8,11 +8,11 @@ public class FormatterCSV {
         System.out.println("🧹 FORMATTEUR DE CSV");
         System.out.println("=".repeat(60));
         
-        // Nettoyer vos fichiers existants
+       
         nettoyerFichier("resultats_detailles.csv", "resultats_propres.csv");
         nettoyerFichier("resultats_resume.csv", "resume_propre.csv");
         
-        // Créer un rapport lisible
+        
         creerRapportLisible("resultats_propres.csv", "rapport_lisible.txt");
     }
     
@@ -25,13 +25,13 @@ public class FormatterCSV {
             boolean firstLine = true;
             
             while ((ligne = reader.readLine()) != null) {
-                // Corriger l'encodage
+              
                 ligne = ligne.replace("DÃ©duction", "Déduction")
                             .replace("Strafx@gle", "Stratégie")
                             .replace("Ã", "é")
                             .replace("©", "é");
                 
-                // Remplacer les virgules par des points-virgules si nécessaire
+                
                 if (ligne.contains(",") && !ligne.contains(";")) {
                     ligne = ligne.replace(",", ";");
                 }

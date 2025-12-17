@@ -8,13 +8,13 @@ public class GenerateurRapportExcel {
         System.out.println("📊 GÉNÉRATEUR DE RAPPORTS PROPRE");
         System.out.println("=".repeat(60));
         
-        // Lancer le benchmark
+       
         BenchmarkComplet benchmark = new BenchmarkComplet();
         benchmark.ajouterStrategies();
         benchmark.generer150Puzzles();
         benchmark.executerBenchmark();
         
-        // Générer les rapports
+        
         genererRapports(benchmark);
     }
     
@@ -40,7 +40,7 @@ public class GenerateurRapportExcel {
             writer.println("STRATÉGIE;PUZZLE;TAILLE;RÉSOLU;TEMPS (ms);ÉTAPES;BACKTRACKS;COMPLÉTION (%)");
             writer.println("-".repeat(80));
             
-            // Récupérer les données (vous devrez adapter selon votre structure)
+          
             Map<String, List<SolverStatistics>> resultats = getResultats(benchmark);
             List<Nonogram> puzzles = getPuzzles(benchmark);
             List<SolverStrategy> strategies = getStrategies(benchmark);
@@ -88,7 +88,7 @@ public class GenerateurRapportExcel {
             writer.println("=".repeat(80));
             writer.println();
             
-            // Tableau de comparaison
+           
             writer.println("STRATÉGIE;SUCCÈS;ÉCHECS;TAUX (%);TEMPS MOYEN (ms);ÉTAPES MOY.;BACKTRACKS;EFFICACITÉ");
             writer.println("-".repeat(90));
             
@@ -116,8 +116,8 @@ public class GenerateurRapportExcel {
                 long tempsMoyen = tempsTotal / total;
                 long etapesMoy = etapesTotal / total;
                 
-                // Calcul d'un score d'efficacité
-                double efficacite = (taux * 100) / (tempsMoyen + 1); // +1 pour éviter division par 0
+               
+                double efficacite = (taux * 100) / (tempsMoyen + 1); 
                 
                 writer.println(String.format("%s;%d;%d;%.1f%%;%d;%d;%d;%.2f",
                     nom,
@@ -164,7 +164,7 @@ public class GenerateurRapportExcel {
             writer.println("        <p>Comparaison des stratégies de résolution</p>");
             writer.println("    </div>");
             
-            // ... ajouter les données en HTML ...
+           
             
             writer.println("</body>");
             writer.println("</html>");
@@ -176,9 +176,9 @@ public class GenerateurRapportExcel {
         }
     }
     
-    // Méthodes d'accès aux données (à adapter)
+   
     private static Map<String, List<SolverStatistics>> getResultats(BenchmarkComplet benchmark) {
-        // Utilisez la réflexion ou modifiez BenchmarkComplet pour exposer ces données
+        
         return new HashMap<>();
     }
     

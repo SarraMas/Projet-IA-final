@@ -1,12 +1,7 @@
 import java.util.*;
 import java.io.*;
 
-/**
- * 🎮 TEST CONSOLE - GÉNÉRATION AUTOMATIQUE 100%
- * 
- * TOUS les puzzles sont générés automatiquement avec solution unique garantie
- * Plus de puzzles prédéfinis - chaque test = nouveau puzzle aléatoire
- */
+
 public class TestConsoleStrategies {
    
     private Scanner scanner;
@@ -77,9 +72,7 @@ public class TestConsoleStrategies {
         System.out.print("➤ Votre choix : ");
     }
    
-    /**
-     * 🎯 OPTION 1 : Tester UNE stratégie
-     */
+  
     private void testerUneStrategie() {
         System.out.println("\n" + "=".repeat(80));
         System.out.println("🎯 TEST D'UNE STRATÉGIE");
@@ -145,9 +138,8 @@ public class TestConsoleStrategies {
         }
     }
    
-    /**
-     * ⚔️ OPTION 2 : Comparer TOUTES les stratégies
-     */
+    //option2: Comparer TOUTES les stratégies
+     
     private void comparerToutesStrategies() {
         System.out.println("\n" + "=".repeat(80));
         System.out.println("⚔️  COMPARAISON DE TOUTES LES STRATÉGIES");
@@ -202,9 +194,8 @@ public class TestConsoleStrategies {
         afficherClassementComparaison(resultats);
     }
    
-    /**
-     * 📊 OPTION 3 : Benchmark 150 puzzles
-     */
+    //OPTION 3 : Benchmark 150 puzzles
+     
     private void lancerBenchmark150() {
         System.out.println("\n" + "=".repeat(80));
         System.out.println("📊 BENCHMARK COMPLET - 150 PUZZLES");
@@ -237,9 +228,8 @@ public class TestConsoleStrategies {
         }
     }
    
-    /**
-     * 📋 OPTION 4 : Liste des stratégies
-     */
+    // OPTION 4 : Liste des stratégies
+     
     private void afficherListeStrategies() {
         System.out.println("\n" + "=".repeat(80));
         System.out.println("📋 LISTE DES STRATÉGIES DISPONIBLES");
@@ -251,9 +241,8 @@ public class TestConsoleStrategies {
         }
     }
    
-    /**
-     * ❓ OPTION 5 : Aide sur les stratégies
-     */
+    // OPTION 5 : Aide sur les stratégies
+     
     private void afficherAideStrategies() {
         System.out.println("\n" + "=".repeat(80));
         System.out.println("❓ DESCRIPTION DES STRATÉGIES");
@@ -399,11 +388,9 @@ public class TestConsoleStrategies {
         System.out.println();
     }
    
-    // ========== GÉNÉRATION AUTOMATIQUE DE PUZZLES ==========
    
-    /**
-     * 🎲 GÉNÉRATION RAPIDE avec solution unique garantie
-     */
+     // GÉNÉRATION RAPIDE avec solution unique garantie
+     
     private Nonogram genererPuzzleValideRapide(int taille) {
         int maxTentatives = 150;
         
@@ -442,12 +429,12 @@ public class TestConsoleStrategies {
             int[][] colClues = calculerIndicesColonnes(solution, taille);
             LineClues clues = new LineClues(rowClues, colClues);
            
-            // ✅ VALIDATION : Solution unique ?
+           
             if (PuzzleValidator.hasUniqueSolution(clues, taille, taille)) {
                 return new Nonogram(taille, taille, clues, solution);
             }
             
-            // Afficher progression tous les 30 essais
+            
             if (tentative > 0 && tentative % 30 == 0) {
                 System.out.println("  ⏳ Tentative " + tentative + "/" + maxTentatives + "...");
             }
@@ -496,7 +483,7 @@ public class TestConsoleStrategies {
         return indices;
     }
    
-    // ========== UTILITAIRES ==========
+   
    
     private Nonogram copierPuzzle(Nonogram original) {
         return new Nonogram(

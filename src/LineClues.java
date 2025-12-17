@@ -9,7 +9,7 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 
 public class LineClues {
-	// LineClues.java - Stocke les indices des lignes et colonnes
+	
 		private final int[][] rowClues;
 		private final int[][] colClues;
 		private final int width;
@@ -28,7 +28,7 @@ public class LineClues {
 				throw new IllegalArgumentException("Les indices ne peuvent pas être null");
 			}
 
-			// Validation basique
+			
 			for (int[] row : rowClues) {
 				if (row == null) throw new IllegalArgumentException("Ligne d'indices invalide");
 			}
@@ -37,13 +37,13 @@ public class LineClues {
 			}
 		}
 
-		// Getters
+		
 		public int[][] getRowClues() { return rowClues; }
 		public int[][] getColClues() { return colClues; }
 		public int getWidth() { return width; }
 		public int getHeight() { return height; }
 
-		// Méthode utilitaire pour afficher les indices
+		
 		public void printClues() {
 			System.out.println("Indices des lignes:");
 			for (int i = 0; i < rowClues.length; i++) {

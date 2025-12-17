@@ -1,17 +1,6 @@
 import java.util.*;
 
-/**
- * 🤖 STRATÉGIE IA ULTRA-OPTIMISÉE v2
- * 
- * AMÉLIORATIONS MAJEURES :
- * 1. Cache des lignes possibles (évite recalculs)
- * 2. Propagation de contraintes agressive
- * 3. Heuristique MRV (Minimum Remaining Values)
- * 4. Détection précoce ultra-rapide
- * 5. Optimisation mémoire
- * 
- * OBJECTIF : Battre BacktrackingSolver sur 150/150 puzzles
- */
+
 public class AIHeuristicStrategy implements SolverStrategy {
     
     private SolverStatistics stats;
@@ -21,11 +10,11 @@ public class AIHeuristicStrategy implements SolverStrategy {
     
     private SimpleLineSolver lineSolver;
     
-    // 🚀 LIMITES OPTIMISÉES
+   
     private static final int MAX_BACKTRACKS = 250000;
     private static final long MAX_TIME_MS = 120000;
     
-    // 💾 CACHE pour éviter recalculs
+
     private Map<String, List<CellState[]>> cacheLinesPossibles;
     
     private boolean stepByStepMode = false;
@@ -75,19 +64,13 @@ public class AIHeuristicStrategy implements SolverStrategy {
         this.width = nonogram.getWidth();
         this.height = nonogram.getHeight();
         
-        // Ne pas reset si on est appelé depuis prepareStepByStepSolution
+      
         if (!stepByStepMode) {
             resetStatistics();
             this.cacheLinesPossibles.clear();
         }
         
         long startTime = System.currentTimeMillis();
-        
-        // Ne jamais retourner ici, on résout toujours
-        // if (stepByStepMode) {
-        //     prepareStepByStepSolution();
-        //     return false;
-        // }
         
         // PHASE 1 : Déduction ULTRA-AGRESSIVE
         applyUltraAggressiveDeduction();
@@ -122,9 +105,7 @@ public class AIHeuristicStrategy implements SolverStrategy {
         return solved;
     }
     
-    /**
-     * 🧠 DÉDUCTION ULTRA-AGRESSIVE avec propagation
-     */
+   
     private void applyUltraAggressiveDeduction() {
         boolean progress = true;
         int iterations = 0;
@@ -164,9 +145,7 @@ public class AIHeuristicStrategy implements SolverStrategy {
         }
     }
     
-    /**
-     * 📊 CASES CERTAINES avec CACHE
-     */
+   
     private boolean applyCertainCellsWithCache() {
         boolean changed = false;
         
@@ -193,9 +172,7 @@ public class AIHeuristicStrategy implements SolverStrategy {
         return changed;
     }
     
-    /**
-     * 🎯 CALCUL DE PROBABILITÉ avec CACHE
-     */
+    
     private double calculateProbabilityWithCache(int row, int col) {
         List<CellState[]> rowSolutions = getPossibleLinesWithCache(
             getRow(row), 
@@ -232,9 +209,7 @@ public class AIHeuristicStrategy implements SolverStrategy {
         return Math.min(rowProb, colProb);
     }
     
-    /**
-     * 💾 GET POSSIBLE LINES avec CACHE
-     */
+   
     private List<CellState[]> getPossibleLinesWithCache(CellState[] current, int[] clue, 
                                                          int length, boolean isRow, int index) {
         String key = generateCacheKey(current, clue, isRow, index);
@@ -262,9 +237,7 @@ public class AIHeuristicStrategy implements SolverStrategy {
         return sb.toString();
     }
     
-    /**
-     * 🔥 NOUVEAU : FORCED CELLS (cases forcées par contraintes)
-     */
+   
     private boolean applyForcedCells() {
         boolean changed = false;
         
@@ -288,7 +261,7 @@ public class AIHeuristicStrategy implements SolverStrategy {
             }
         }
         
-        // Pour chaque colonne
+        
         for (int col = 0; col < width; col++) {
             CellState[] column = getColumn(col);
             int[] clue = nonogram.getClues().getColClues()[col];
@@ -310,9 +283,7 @@ public class AIHeuristicStrategy implements SolverStrategy {
         return changed;
     }
     
-    /**
-     * 🔗 PROPAGATION DE CONTRAINTES
-     */
+    
     private boolean propagateConstraints() {
         boolean changed = false;
         
@@ -362,9 +333,7 @@ public class AIHeuristicStrategy implements SolverStrategy {
         return !rowSolutions.isEmpty();
     }
     
-    /**
-     * 🚫 MARQUER LES CASES IMPOSSIBLES
-     */
+   
     private boolean markImpossibleCells() {
         boolean changed = false;
         
@@ -395,9 +364,8 @@ public class AIHeuristicStrategy implements SolverStrategy {
         return changed;
     }
     
-    /**
-     * 🎲 BACKTRACKING avec MRV (Minimum Remaining Values)
-     */
+  //  BACKTRACKING avec MRV (Minimum Remaining Values)
+    
     private boolean mrvBacktrack(long startTime, int depth) {
         stats.incrementSteps();
         
@@ -423,7 +391,7 @@ public class AIHeuristicStrategy implements SolverStrategy {
             return false;
         }
         
-        // 🎯 MRV : Choisir la case avec le moins de solutions possibles
+        //  MRV : Choisir la case avec le moins de solutions possibles
         CellChoice choice = findBestCellMRV();
         
         if (choice == null) {
@@ -459,9 +427,8 @@ public class AIHeuristicStrategy implements SolverStrategy {
         return false;
     }
     
-    /**
-     * 🎯 HEURISTIQUE MRV : Minimum Remaining Values
-     */
+    // HEURISTIQUE MRV : Minimum Remaining Values
+    
     private CellChoice findBestCellMRV() {
         CellChoice best = null;
         double bestScore = Double.MAX_VALUE;
@@ -531,9 +498,8 @@ public class AIHeuristicStrategy implements SolverStrategy {
         return true;
     }
     
-    /**
-     * 🚨 DÉTECTION RAPIDE DE CONTRADICTION
-     */
+    // DÉTECTION RAPIDE DE CONTRADICTION
+     
     private boolean hasContradictionFast() {
         for (int row = 0; row < height; row++) {
             if (isLineContradiction(getRow(row), nonogram.getClues().getRowClues()[row])) {
@@ -587,9 +553,7 @@ public class AIHeuristicStrategy implements SolverStrategy {
         return false;
     }
     
-    /**
-     * GÉNÉRATION DE LIGNES POSSIBLES
-     */
+   //générattion de lignes possibles 
     private List<CellState[]> generatePossibleLines(CellState[] current, int[] clue, int length) {
         List<CellState[]> results = new ArrayList<>();
         
@@ -658,7 +622,7 @@ public class AIHeuristicStrategy implements SolverStrategy {
         return true;
     }
     
-    // ========== MODE PAS-À-PAS ==========
+  
     
     @Override
     public boolean executeNextStep(Nonogram nonogram) {
@@ -669,11 +633,11 @@ public class AIHeuristicStrategy implements SolverStrategy {
             this.height = nonogram.getHeight();
         }
         
-        // Si la queue est vide ET qu'on n'a pas encore préparé
+       
         if (changeQueue.isEmpty() && stats.getTotalSteps() == 0) {
             System.out.println("🔍 Préparation solution step-by-step...");
             
-            // Créer copie et résoudre avec une NOUVELLE instance
+            
             Nonogram copy = new Nonogram(width, height, nonogram.getClues(), nonogram.getSolution());
             AIHeuristicStrategy solver = new AIHeuristicStrategy();
             
@@ -681,7 +645,7 @@ public class AIHeuristicStrategy implements SolverStrategy {
             boolean solved = solver.solve(copy);
             System.out.println(solved ? "✅ Copie résolue" : "❌ Échec");
             
-            // Comparer et enregistrer changements
+           
             for (int r = 0; r < height; r++) {
                 for (int c = 0; c < width; c++) {
                     CellState current = nonogram.getCell(r, c);
@@ -701,7 +665,7 @@ public class AIHeuristicStrategy implements SolverStrategy {
             }
         }
         
-        // Appliquer le prochain changement
+     
         if (!changeQueue.isEmpty()) {
             CellChange change = changeQueue.poll();
             nonogram.setCell(change.row, change.col, change.state);
@@ -710,15 +674,12 @@ public class AIHeuristicStrategy implements SolverStrategy {
             System.out.println("📝 Étape " + stats.getTotalSteps() + 
                              " : Case (" + change.row + "," + change.col + ") → " + change.state);
             
-            return true; // Continue
+            return true; 
         }
         
-        return false; // Plus de changements
+        return false; 
     }
-    
-    /**
-     * Version FIXÉE de prepareStepByStepSolution
-     */
+   
     private void prepareStepByStepSolutionFixed() {
         changeQueue.clear();
         
@@ -770,7 +731,7 @@ public class AIHeuristicStrategy implements SolverStrategy {
         return stats.getTotalSteps();
     }
     
-    // ========== UTILITAIRES ==========
+   
     
     private CellState[] getRow(int row) {
         CellState[] line = new CellState[width];

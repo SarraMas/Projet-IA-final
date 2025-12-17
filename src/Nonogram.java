@@ -71,16 +71,13 @@ public class Nonogram {
         return row >= 0 && row < height && col >= 0 && col < width;
     }
 
-    /**
-     * 🔥 MÉTHODE CORRIGÉE - Vérifie que TOUTES les contraintes sont satisfaites
-     */
+    
     public boolean isSolved() {
         if (solution == null) {
-            // Pas de solution prédéfinie - vérifier les contraintes
             return checkAllConstraints();
         }
         
-        // Vérifier contre la solution
+       
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
                 CellState gridState = grid[i][j];
@@ -100,9 +97,7 @@ public class Nonogram {
         return true;
     }
 
-    /**
-     * ✅ NOUVELLE MÉTHODE - Vérifie toutes les contraintes ligne/colonne
-     */
+   
     private boolean checkAllConstraints() {
         // Vérifier toutes les lignes
         for (int row = 0; row < height; row++) {
@@ -111,7 +106,6 @@ public class Nonogram {
             }
         }
         
-        // Vérifier toutes les colonnes
         for (int col = 0; col < width; col++) {
             if (!checkLineConstraint(getColumnArray(col), clues.getColClues()[col])) {
                 return false;
@@ -121,9 +115,7 @@ public class Nonogram {
         return true;
     }
 
-    /**
-     * ✅ Vérifie qu'une ligne respecte exactement ses contraintes
-     */
+    
     private boolean checkLineConstraint(CellState[] line, int[] clue) {
         java.util.List<Integer> groups = new java.util.ArrayList<>();
         int count = 0;

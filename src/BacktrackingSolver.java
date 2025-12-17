@@ -1,9 +1,6 @@
-/**
- * BACKTRACKING SOLVER - VERSION FINALE CORRIGÉE
- * 
- * CORRECTION MAJEURE : Essaie maintenant FILLED et CROSSED (pas juste FILLED et EMPTY)
- */
-public class BacktrackingSolver implements SolverStrategy {
+
+
+class BacktrackingSolver implements SolverStrategy {
     
     private SolverStatistics stats;
     private Nonogram nonogram;
@@ -112,14 +109,11 @@ public class BacktrackingSolver implements SolverStrategy {
         
         return solved;
     }
-    
-    /**
-     * BACKTRACKING RÉCURSIF - VERSION FINALE CORRIGÉE
-     */
+   
     private boolean backtrackRecursive(long startTime, int depth) {
         stats.incrementSteps();
         
-        // Sécurités
+  
         if (System.currentTimeMillis() - startTime > MAX_TIME_MS) {
             return false;
         }
@@ -132,7 +126,7 @@ public class BacktrackingSolver implements SolverStrategy {
             return false;
         }
         
-        // Vérifications
+      
         if (nonogram.isSolved()) {
             return true;
         }
@@ -142,7 +136,7 @@ public class BacktrackingSolver implements SolverStrategy {
             return false;
         }
         
-        // Appliquer la déduction
+      
         lineSolver.solve(nonogram);
         
         if (nonogram.isSolved()) {
@@ -154,7 +148,7 @@ public class BacktrackingSolver implements SolverStrategy {
             return false;
         }
         
-        // Trouver une case à deviner
+   
         int[] bestCell = findBestCellToGuess();
         
         if (bestCell == null) {
@@ -165,28 +159,28 @@ public class BacktrackingSolver implements SolverStrategy {
         int row = bestCell[0];
         int col = bestCell[1];
         
-        // Sauvegarder l'état
+       
         CellState[][] backup = copyGrid();
         
-        // ✅ CORRECTION : Essai 1 = FILLED
+       
         nonogram.setCell(row, col, CellState.FILLED);
         
         if (backtrackRecursive(startTime, depth + 1)) {
             return true;
         }
         
-        // Échec - restaurer
+     
         stats.incrementBacktracks();
         restoreGrid(backup);
         
-        // ✅ CORRECTION : Essai 2 = CROSSED (pas EMPTY)
+      
         nonogram.setCell(row, col, CellState.CROSSED);
         
         if (backtrackRecursive(startTime, depth + 1)) {
             return true;
         }
         
-        // Les deux ont échoué
+     
         stats.incrementBacktracks();
         restoreGrid(backup);
         return false;
@@ -225,9 +219,7 @@ public class BacktrackingSolver implements SolverStrategy {
         return stats.getTotalSteps();
     }
     
-    /**
-     * HEURISTIQUE : Trouve la meilleure case à deviner
-     */
+   
     private int[] findBestCellToGuess() {
         int bestRow = -1;
         int bestCol = -1;
@@ -274,9 +266,7 @@ public class BacktrackingSolver implements SolverStrategy {
         return count;
     }
     
-    /**
-     * DÉTECTION DE CONTRADICTION - AMÉLIORÉE
-     */
+  
     private boolean hasContradiction() {
         for (int row = 0; row < height; row++) {
             if (isLineContradiction(getRow(row), nonogram.getClues().getRowClues()[row])) {
@@ -293,9 +283,8 @@ public class BacktrackingSolver implements SolverStrategy {
         return false;
     }
     
-    /**
-     * VÉRIFIER SI UNE LIGNE EST CONTRADICTOIRE
-     */
+
+     
     private boolean isLineContradiction(CellState[] line, int[] clue) {
         java.util.List<Integer> completeGroups = new java.util.ArrayList<>();
         int currentCount = 0;
@@ -319,7 +308,7 @@ public class BacktrackingSolver implements SolverStrategy {
             completeGroups.add(currentCount);
         }
         
-        // Ligne complète
+     
         if (!hasEmpty) {
             if (completeGroups.size() != clue.length) {
                 return true;
@@ -332,7 +321,7 @@ public class BacktrackingSolver implements SolverStrategy {
             return false;
         }
         
-        // Ligne incomplète
+       
         if (completeGroups.size() > clue.length) {
             return true;
         }
@@ -346,7 +335,7 @@ public class BacktrackingSolver implements SolverStrategy {
         return false;
     }
     
-    // ========== UTILITAIRES ==========
+   
     
     private CellState[] getRow(int row) {
         CellState[] line = new CellState[width];

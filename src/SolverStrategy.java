@@ -1,39 +1,15 @@
-/**
- * INTERFACE POUR TOUTES LES STRATÉGIES DE RÉSOLUTION
- * 
- * Chaque stratégie doit implémenter cette interface pour :
- * - Uniformiser l'API (toutes les stratégies ont les mêmes méthodes)
- * - Permettre la comparaison équitable
- * - Faciliter l'ajout de nouvelles stratégies
- */
+
 public interface SolverStrategy {
     
-    /**
-     * RÉSOUDRE UN PUZZLE
-     * 
-     * @param nonogram Le puzzle à résoudre
-     * @return true si résolu avec succès, false sinon
-     */
+    
     boolean solve(Nonogram nonogram);
     
-    /**
-     * OBTENIR LE NOM DE LA STRATÉGIE
-     * 
-     * @return Nom descriptif (ex: "Backtracking Simple")
-     */
+  
     String getName();
     
-    /**
-     * OBTENIR LES STATISTIQUES DE LA DERNIÈRE RÉSOLUTION
-     * 
-     * @return Objet contenant toutes les métriques
-     */
+  
     SolverStatistics getStatistics();
-    
-    /**
-     * RÉINITIALISER LES STATISTIQUES
-     * Appelé avant chaque nouvelle résolution
-     */
+   
     void resetStatistics();
     
     void setStepByStepMode(boolean enabled);
@@ -42,42 +18,33 @@ public interface SolverStrategy {
     int getCurrentStep();
 }
 
-/**
- * CLASSE POUR STOCKER LES STATISTIQUES D'UNE RÉSOLUTION
- * 
- * Contient toutes les métriques pour comparer les stratégies :
- * - Temps d'exécution
- * - Nombre d'étapes
- * - Nombre de backtracks
- * - Mémoire utilisée
- * - etc.
- */
+
 class SolverStatistics {
-    // Temps d'exécution en millisecondes
+   
     private long executionTimeMs;
     
-    // Nombre total d'étapes/itérations
+   
     private int totalSteps;
     
-    // Nombre de retours en arrière (backtracks)
+    
     private int backtrackCount;
     
-    // Nombre de cases résolues par déduction
+    
     private int cellsSolvedByDeduction;
     
-    // Nombre de cases résolues par essai-erreur
+   
     private int cellsSolvedByGuessing;
     
-    // Pourcentage du puzzle résolu (0-100)
+   
     private double completionPercentage;
     
-    // Puzzle résolu avec succès ?
+   
     private boolean solved;
     
-    // Message d'erreur si échec
+  
     private String errorMessage;
     
-    // ========== CONSTRUCTEUR ==========
+    
     public SolverStatistics() {
         this.executionTimeMs = 0;
         this.totalSteps = 0;
@@ -89,7 +56,7 @@ class SolverStatistics {
         this.errorMessage = "";
     }
     
-    // ========== GETTERS ET SETTERS ==========
+   
     
     public long getExecutionTimeMs() {
         return executionTimeMs;
@@ -171,11 +138,7 @@ class SolverStatistics {
         this.errorMessage = errorMessage;
     }
     
-    // ========== MÉTHODES UTILITAIRES ==========
-    
-    /**
-     * Affiche un résumé des statistiques
-     */
+   
     public void printSummary() {
         System.out.println("=== STATISTIQUES DE RÉSOLUTION ===");
         System.out.println("Résolu : " + (solved ? "✅ OUI" : "❌ NON"));
@@ -191,18 +154,13 @@ class SolverStatistics {
         }
     }
     
-    /**
-     * Retourne une ligne CSV avec toutes les stats
-     */
+   
     public String toCSV() {
         return String.format("%b,%d,%d,%d,%d,%d,%.2f",
             solved, executionTimeMs, totalSteps, backtrackCount,
             cellsSolvedByDeduction, cellsSolvedByGuessing, completionPercentage);
     }
     
-    /**
-     * Header CSV pour les exports
-     */
     public static String getCSVHeader() {
         return "Solved,Time(ms),Steps,Backtracks,Deduction,Guessing,Completion(%)";
     }

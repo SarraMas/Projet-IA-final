@@ -474,10 +474,10 @@ public class NonogramGame extends JFrame {
                 return;
             }
            
-            // Exécuter l'étape
+        
             boolean cont = currentStrategy.executeNextStep(visualizationPuzzle);
             
-            // ✅ FORCER mise à jour sur le thread Swing
+            
             SwingUtilities.invokeLater(() -> {
                 updateGridFromViz();
                 statusLabel.setText("👁️ Étape " + currentStrategy.getCurrentStep());
@@ -503,18 +503,18 @@ public class NonogramGame extends JFrame {
         isVisualizing = false;
         strategyButton.setText("👁️ Voir Stratégie");
         strategyButton.setBackground(new Color(46, 204, 113));
-        // NE PAS réinitialiser l'affichage - garder le résultat de la stratégie
+        
         System.out.println("⏹️ Arrêté");
     }
 
     private void updateGridFromViz() {
-        // Copier ET afficher l'état actuel
+       
         for (int r = 0; r < nonogram.getHeight(); r++) {
             for (int c = 0; c < nonogram.getWidth(); c++) {
                 CellState state = visualizationPuzzle.getCell(r, c);
                 nonogram.setCell(r, c, state);
                 
-                // Mise à jour visuelle immédiate
+               
                 JButton btn = gridButtons[r][c];
                 switch (state) {
                     case EMPTY:

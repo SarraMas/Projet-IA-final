@@ -1,10 +1,6 @@
 import java.util.*;
 
-/**
- * SIMPLE LINE SOLVER - VERSION FINALE CORRIGÉE
- * 
- * CORRECTION MAJEURE : Marque maintenant les cases CROSSED (certainement vides)
- */
+
 public class SimpleLineSolver implements SolverStrategy {
 
 	private SolverStatistics stats;
@@ -138,9 +134,7 @@ public class SimpleLineSolver implements SolverStrategy {
 		return stats.getTotalSteps();
 	}
 
-	/**
-	 * RÉSOLUTION DE LIGNE - CORRIGÉE POUR MARQUER FILLED **ET** CROSSED
-	 */
+	
 	private boolean solveRow(int row) {
 		CellState[] currentLine = getRow(row);
 		int[] clue = nonogram.getClues().getRowClues()[row];
@@ -153,10 +147,10 @@ public class SimpleLineSolver implements SolverStrategy {
 
 		boolean modified = false;
 
-		// Pour chaque case EMPTY, vérifier si toutes les solutions ont la même valeur
+		
 		for (int col = 0; col < width; col++) {
 			if (currentLine[col] != CellState.EMPTY) {
-				continue; // Case déjà déterminée
+				continue; 
 			}
 
 			CellState first = possibleSolutions.get(0)[col];
@@ -169,7 +163,7 @@ public class SimpleLineSolver implements SolverStrategy {
 				}
 			}
 
-			// ✅ CORRECTION CRITIQUE : Appliquer FILLED **OU** CROSSED
+			
 			if (allSame) {
 				nonogram.setCell(row, col, first);
 				modified = true;
@@ -180,9 +174,7 @@ public class SimpleLineSolver implements SolverStrategy {
 		return modified;
 	}
 
-	/**
-	 * RÉSOLUTION DE COLONNE - CORRIGÉE POUR MARQUER FILLED **ET** CROSSED
-	 */
+	
 	private boolean solveColumn(int col) {
 		CellState[] currentColumn = getColumn(col);
 		int[] clue = nonogram.getClues().getColClues()[col];
@@ -210,7 +202,7 @@ public class SimpleLineSolver implements SolverStrategy {
 				}
 			}
 
-			// ✅ CORRECTION CRITIQUE : Appliquer FILLED **OU** CROSSED
+			
 			if (allSame) {
 				nonogram.setCell(row, col, first);
 				modified = true;
@@ -221,44 +213,37 @@ public class SimpleLineSolver implements SolverStrategy {
 		return modified;
 	}
 
-	/**
-	 * GÉNÉRATION DE LIGNES POSSIBLES - CORRIGÉE
-	 * Génère des lignes avec FILLED **ET** CROSSED
-	 */
+	
 	private List<CellState[]> generatePossibleLines(int[] clue, int length, CellState[] current) {
 		List<CellState[]> results = new ArrayList<>();
 
-		// Cas spécial : ligne totalement vide
+		
 		if (clue.length == 0 || (clue.length == 1 && clue[0] == 0)) {
 			CellState[] line = new CellState[length];
-			Arrays.fill(line, CellState.CROSSED); // TOUTES les cases sont CROSSED
+			Arrays.fill(line, CellState.CROSSED); 
 			if (isCompatible(line, current)) {
 				results.add(line);
 			}
 			return results;
 		}
 
-		// Génération récursive CORRECTE
+		
 		generateLinesRecursiveCorrect(clue, length, 0, 0, new CellState[length], current, results);
 
 		return results;
 	}
 
-	/**
-	 * GÉNÉRATION RÉCURSIVE - VERSION CORRIGÉE
-	 * Place les blocs FILLED et remplit le reste avec CROSSED
-	 */
 	private void generateLinesRecursiveCorrect(int[] clue, int length, int pos, int clueIndex,
 			CellState[] line, CellState[] current,
 			List<CellState[]> results) {
-		// Tous les blocs placés
+		
 		if (clueIndex >= clue.length) {
-			// Remplir le reste avec CROSSED
+			
 			for (int i = pos; i < length; i++) {
 				line[i] = CellState.CROSSED;
 			}
 
-			// Vérifier compatibilité
+			
 			if (isCompatible(line, current)) {
 				results.add(line.clone());
 			}
@@ -267,28 +252,28 @@ public class SimpleLineSolver implements SolverStrategy {
 
 		int blockSize = clue[clueIndex];
 
-		// Espace minimum nécessaire pour les blocs restants
+		
 		int minSpace = blockSize;
 		for (int i = clueIndex + 1; i < clue.length; i++) {
 			minSpace += 1 + clue[i]; // 1 espace entre les blocs
 		}
 
-		// Essayer toutes les positions possibles pour ce bloc
+		
 		for (int start = pos; start <= length - minSpace; start++) {
-			// Placer CROSSED avant le bloc
+			
 			for (int i = pos; i < start; i++) {
 				line[i] = CellState.CROSSED;
 			}
 
-			// Placer le bloc FILLED
+			
 			for (int i = start; i < start + blockSize; i++) {
 				line[i] = CellState.FILLED;
 			}
 
-			// Position pour le prochain bloc
+			
 			int nextPos = start + blockSize;
 
-			// S'il reste des blocs, placer au moins un CROSSED entre
+			
 			if (clueIndex < clue.length - 1) {
 				if (nextPos < length) {
 					line[nextPos] = CellState.CROSSED;
@@ -296,32 +281,28 @@ public class SimpleLineSolver implements SolverStrategy {
 				}
 			}
 
-			// Récursion pour le bloc suivant
+			
 			generateLinesRecursiveCorrect(clue, length, nextPos, clueIndex + 1, line, current, results);
 		}
 	}
 
 
-	/**
-	 * VÉRIFICATION DE COMPATIBILITÉ
-	 */
-
 private boolean isCompatible(CellState[] generated, CellState[] current) {
     for (int i = 0; i < generated.length; i++) {
-        // Si dans current c'est FILLED, dans generated doit être FILLED
+        
         if (current[i] == CellState.FILLED && generated[i] != CellState.FILLED) {
             return false;
         }
-        // Si dans current c'est CROSSED, dans generated doit être CROSSED
+      
         if (current[i] == CellState.CROSSED && generated[i] != CellState.CROSSED) {
             return false;
         }
-        // Si dans current c'est EMPTY, generated peut être FILLED ou CROSSED
+      
     }
     return true;
 }
 
-	// ========== UTILITAIRES ==========
+	
 
 	private CellState[] getRow(int row) {
 		CellState[] line = new CellState[width];

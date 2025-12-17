@@ -3,7 +3,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
- * 📊 BENCHMARK COMPLET - VERSION OPTIMISÉE
+ * BENCHMARK COMPLET - VERSION OPTIMISÉE
  * Génère 150 puzzles VALIDES et teste toutes les stratégies
  */
 public class BenchmarkComplet {
@@ -36,9 +36,7 @@ public class BenchmarkComplet {
         System.out.println();
     }
     
-    /**
-     * 🎲 GÉNÉRATION OPTIMISÉE - Distribution progressive
-     */
+  
     public void generer150Puzzles() {
         System.out.println("🎲 GÉNÉRATION DE 150 PUZZLES");
         System.out.println("=".repeat(60));
@@ -48,7 +46,7 @@ public class BenchmarkComplet {
         int tentatives = 0;
         int maxTentatives = 3000;
         
-        // Distribution : beaucoup de petits, quelques moyens
+       
         int[] distribution = {
             3,3,3,3,3,3,3,3,3,3, // 10× 3×3
             4,4,4,4,4,4,4,4,4,4,4,4,4,4,4, // 15× 4×4
@@ -67,7 +65,7 @@ public class BenchmarkComplet {
             tailles.add(t);
         }
         while (tailles.size() < 150) {
-            tailles.add(5); // Remplir avec du 5×5
+            tailles.add(5); 
         }
         
         Collections.shuffle(tailles, random);
@@ -95,9 +93,7 @@ public class BenchmarkComplet {
         System.out.println("✅ GÉNÉRATION TERMINÉE : " + puzzles150.size() + " puzzles\n");
     }
     
-    /**
-     * 🏃 BENCHMARK avec timeout par puzzle
-     */
+   
     public void executerBenchmark() {
         System.out.println("🚀 EXÉCUTION DU BENCHMARK");
         System.out.println("=".repeat(60));
@@ -139,9 +135,7 @@ public class BenchmarkComplet {
         System.out.println("✅ BENCHMARK TERMINÉ\n");
     }
     
-    /**
-     * 📈 RÉSULTATS COMPLETS
-     */
+  //Résultats complets 
     public void afficherResultatsComplets() {
         System.out.println("=".repeat(80));
         System.out.println("📊 RÉSULTATS COMPLETS - 150 PUZZLES");
@@ -199,9 +193,7 @@ public class BenchmarkComplet {
         System.out.println("=".repeat(80));
     }
     
-    /**
-     * 🏆 CLASSEMENT
-     */
+    //classement 
     private void afficherClassement() {
         System.out.println("🏆 CLASSEMENT DES STRATÉGIES");
         System.out.println("-".repeat(80));
@@ -243,9 +235,7 @@ public class BenchmarkComplet {
         System.out.println();
     }
     
-    /**
-     * 💾 EXPORT CSV
-     */
+   // Export CSV
     public void exporterCSV(String fichier) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(fichier, StandardCharsets.UTF_8))) {
             writer.println("Strategie;Puzzle;Taille;Resolu;Temps_ms;Noeuds;Backtracks;Completion_%");
@@ -340,18 +330,14 @@ public class BenchmarkComplet {
         return text.replace(",", " -").replace(";", " -");
     }
     
-    // ========== GÉNÉRATION DE PUZZLES VALIDES ==========
-    
-    /**
-     * 🔥 GÉNÉRATION OPTIMISÉE avec validation stricte
-     */
+   
     private Nonogram genererPuzzleValide(int taille, Random random) {
         int maxTentatives = 200;
         
         for (int t = 0; t < maxTentatives; t++) {
             CellState[][] solution = new CellState[taille][taille];
             
-            // Densité adaptative
+            
             double densite = 0.25 + random.nextDouble() * 0.3;
             
             for (int i = 0; i < taille; i++) {
@@ -361,14 +347,14 @@ public class BenchmarkComplet {
                 }
             }
             
-            // S'assurer qu'il y a des cases remplies (mais pas forcément partout)
+            
             for (int i = 0; i < taille; i++) {
                 boolean ligneOk = false, colOk = false;
                 for (int j = 0; j < taille; j++) {
                     if (solution[i][j] == CellState.FILLED) ligneOk = true;
                     if (solution[j][i] == CellState.FILLED) colOk = true;
                 }
-                // Ne forcer que si vraiment vide ET aléatoirement
+                
                 if (!ligneOk && random.nextDouble() > 0.4) {
                     solution[i][random.nextInt(taille)] = CellState.FILLED;
                 }

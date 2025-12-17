@@ -64,7 +64,7 @@ public class LogicStrategy implements SolverStrategy {
 
 		do {
 			if (stepByStep)
-				return false; // l'interface appelle executeNextStep()
+				return false; 
 
 			changed = performOneIteration(nonogram);
 			iterations++;
@@ -78,14 +78,10 @@ public class LogicStrategy implements SolverStrategy {
 		return nonogram.isSolved();
 	}
 
-	// ============================================================
-	// 1 ITERATION (LIGNES + COLONNES) — utilisé par solve() et step-by-step
-	// ============================================================
-
 	private boolean performOneIteration(Nonogram nonogram) {
 		boolean changed = false;
 
-		// lignes
+		
 		for (int r = 0; r < nonogram.getHeight(); r++) {
 			if (applyOnRow(nonogram, r)) {
 				changed = true;
@@ -93,7 +89,7 @@ public class LogicStrategy implements SolverStrategy {
 			}
 		}
 
-		// colonnes
+		
 		for (int c = 0; c < nonogram.getWidth(); c++) {
 			if (applyOnColumn(nonogram, c)) {
 				changed = true;
@@ -104,10 +100,7 @@ public class LogicStrategy implements SolverStrategy {
 		return changed;
 	}
 
-	// ============================================================
-	// LOGIQUE SUR LIGNE / COLONNE
-	// ============================================================
-
+	
 	private boolean applyOnRow(Nonogram nonogram, int row) {
 		int width = nonogram.getWidth();
 		CellState[][] grid = nonogram.getGrid();
@@ -134,10 +127,6 @@ public class LogicStrategy implements SolverStrategy {
 
 		return changed;
 	}
-
-	// ============================================================
-	// OVERLAP LOGIC — inchangé (juste intégré proprement)
-	// ============================================================
 
 	private boolean applyOverlapLogic(CellState[] line, int[] clue, int length) {
 		boolean changed = false;
